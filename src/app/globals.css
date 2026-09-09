@@ -1,0 +1,264 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-heading: var(--font-sans);
+
+  /* Semantic trading colors. These are the only place a bull/bear hue is defined: a component
+     that hardcodes green would keep being green in a palette where green means something else. */
+  --color-bullish: var(--bullish);
+  --color-bullish-foreground: var(--bullish-foreground);
+  --color-bullish-muted: var(--bullish-muted);
+  --color-bearish: var(--bearish);
+  --color-bearish-foreground: var(--bearish-foreground);
+  --color-bearish-muted: var(--bearish-muted);
+  --color-telemetry: var(--telemetry);
+  --color-telemetry-foreground: var(--telemetry-foreground);
+  --color-telemetry-muted: var(--telemetry-muted);
+
+  /* Workspace tiles. The terminal is a docking grid, not a page of cards: panel is the tile
+     surface, panel-raised the control tier, and seam the 1px structural divider between them. */
+  --color-panel: var(--panel);
+  --color-panel-raised: var(--panel-raised);
+  --color-panel-overlay: var(--panel-overlay);
+  --color-seam: var(--seam);
+  --color-seam-strong: var(--seam-strong);
+
+  --color-success: var(--bullish);
+  --color-success-foreground: var(--bullish-foreground);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* Both design systems specify a low-radius "soft/sharp" profile: controls at 2-4px, tiles at
+     0px. Scaling the whole shadcn ramp off a 4px base keeps borrowed components in that language
+     instead of rounding a data grid into a marketing card. */
+  --radius-sm: 0.125rem;
+  --radius-md: 0.25rem;
+  --radius-lg: var(--radius);
+  --radius-xl: 0.5rem;
+  --radius-2xl: 0.625rem;
+  --radius-3xl: 0.75rem;
+  --radius-4xl: 0.875rem;
+
+  /* A 22px dense row is what lets an order book show 30+ rows without scrolling. */
+  --spacing-dense-row: 1.375rem;
+  --spacing-pane: 0.75rem;
+}
+
+/* Light: "Institutional Precision Replay" — a daylight-calibrated trading floor. Color is spent
+   only on semantic financial state, never on decoration. */
+:root {
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Helvetica Neue", sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --radius: 0.25rem;
+
+  --background: oklch(1 0 0); /* #FFFFFF */
+  --foreground: oklch(0.21 0.04 265); /* #0F172A */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.21 0.04 265);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.21 0.04 265);
+  --primary: oklch(0.58 0.15 240); /* #0284C7 terminal execution accent */
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.97 0.003 250); /* #F8FAFC */
+  --secondary-foreground: oklch(0.37 0.03 258); /* #334155 */
+  --muted: oklch(0.96 0.006 250); /* #F1F5F9 */
+  --muted-foreground: oklch(0.55 0.03 257); /* #64748B */
+  --accent: oklch(0.96 0.006 250);
+  --accent-foreground: oklch(0.58 0.15 240);
+  --destructive: oklch(0.58 0.21 15); /* #E11D48 */
+  --border: oklch(0.93 0.008 255); /* #E2E8F0 */
+  --input: oklch(0.87 0.014 256); /* #CBD5E1 */
+  --ring: oklch(0.58 0.15 240);
+
+  --bullish: oklch(0.6 0.13 163); /* #059669 institutional emerald */
+  --bullish-foreground: oklch(1 0 0);
+  --bullish-muted: oklch(0.96 0.03 163); /* #ECFDF5 */
+  --bearish: oklch(0.58 0.21 15); /* #E11D48 razor crimson */
+  --bearish-foreground: oklch(1 0 0);
+  --bearish-muted: oklch(0.96 0.02 15); /* #FFF1F2 */
+  --telemetry: oklch(0.58 0.15 240); /* #0284C7 */
+  --telemetry-foreground: oklch(1 0 0);
+  --telemetry-muted: oklch(0.95 0.03 240);
+
+  --panel: oklch(0.97 0.003 250); /* #F8FAFC structural tier */
+  --panel-raised: oklch(0.96 0.006 250); /* #F1F5F9 interactive/recessed tier */
+  --panel-overlay: oklch(1 0 0); /* floating/command tier */
+  --seam: oklch(0.93 0.008 255); /* #E2E8F0 */
+  --seam-strong: oklch(0.87 0.014 256); /* #CBD5E1 */
+
+  --chart-1: oklch(0.58 0.15 240);
+  --chart-2: oklch(0.6 0.13 163);
+  --chart-3: oklch(0.58 0.21 15);
+  --chart-4: oklch(0.65 0.14 80);
+  --chart-5: oklch(0.5 0.13 300);
+
+  --sidebar: oklch(0.97 0.003 250);
+  --sidebar-foreground: oklch(0.37 0.03 258);
+  --sidebar-primary: oklch(0.58 0.15 240);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.96 0.006 250);
+  --sidebar-accent-foreground: oklch(0.58 0.15 240);
+  --sidebar-border: oklch(0.93 0.008 255);
+  --sidebar-ring: oklch(0.58 0.15 240);
+}
+
+/* Dark: "Terminal Precision" — the default. Elevation comes from tonal layering and 1px seams,
+   not from blur: ambient shadow turns a dense data matrix into visual mud. */
+.dark {
+  --background: oklch(0.17 0.017 260); /* #0B0E14 base viewport */
+  --foreground: oklch(0.98 0.003 250); /* #F8FAFC */
+  --card: oklch(0.21 0.017 262); /* #141822 workspace panel */
+  --card-foreground: oklch(0.98 0.003 250);
+  --popover: oklch(0.24 0.019 262); /* #1E2536 floating overlay */
+  --popover-foreground: oklch(0.98 0.003 250);
+  --primary: oklch(0.85 0.19 165); /* #00F0A8 electric emerald */
+  --primary-foreground: oklch(0.17 0.017 260);
+  --secondary: oklch(0.24 0.018 262); /* #1A202C control surface */
+  --secondary-foreground: oklch(0.98 0.003 250);
+  --muted: oklch(0.24 0.018 262);
+  --muted-foreground: oklch(0.71 0.03 257); /* #94A3B8 slate */
+  --accent: oklch(0.27 0.03 245);
+  --accent-foreground: oklch(0.82 0.14 215);
+  --destructive: oklch(0.68 0.21 15); /* #FF4D6D piercing coral */
+  --border: oklch(0.26 0.02 262); /* #1E2433 structural divider */
+  --input: oklch(0.26 0.02 262);
+  --ring: oklch(0.82 0.14 215); /* focus rings are cyan, never green */
+
+  --bullish: oklch(0.85 0.19 165); /* #00F0A8 */
+  --bullish-foreground: oklch(0.17 0.017 260);
+  --bullish-muted: oklch(0.26 0.05 165);
+  --bearish: oklch(0.68 0.21 15); /* #FF4D6D */
+  --bearish-foreground: oklch(0.17 0.017 260);
+  --bearish-muted: oklch(0.27 0.06 15);
+  --telemetry: oklch(0.82 0.14 215); /* #00D2FF playback/telemetry cyan */
+  --telemetry-foreground: oklch(0.17 0.017 260);
+  --telemetry-muted: oklch(0.27 0.05 215);
+
+  --panel: oklch(0.21 0.017 262); /* #141822 */
+  --panel-raised: oklch(0.24 0.018 262); /* #1A202C */
+  --panel-overlay: oklch(0.24 0.019 262); /* #1E2536 */
+  --seam: oklch(0.26 0.02 262); /* #1E2433 */
+  --seam-strong: oklch(0.31 0.024 262); /* #2B3448 */
+
+  --chart-1: oklch(0.85 0.19 165);
+  --chart-2: oklch(0.82 0.14 215);
+  --chart-3: oklch(0.68 0.21 15);
+  --chart-4: oklch(0.78 0.15 85);
+  --chart-5: oklch(0.7 0.14 300);
+
+  --sidebar: oklch(0.19 0.017 261);
+  --sidebar-foreground: oklch(0.9 0.006 250);
+  --sidebar-primary: oklch(0.85 0.19 165);
+  --sidebar-primary-foreground: oklch(0.17 0.017 260);
+  --sidebar-accent: oklch(0.24 0.018 262);
+  --sidebar-accent-foreground: oklch(0.82 0.14 215);
+  --sidebar-border: oklch(0.26 0.02 262);
+  --sidebar-ring: oklch(0.82 0.14 215);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+    background: var(--background);
+  }
+}
+
+@layer components {
+  /* Every quantitative surface in both design systems: prices, sizes, R-multiples, timestamps.
+     Tabular figures and a slashed zero are what stop a column from jittering as it updates. */
+  .metric {
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum" 1, "zero" 1;
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  /* Micro-labels: uppercase with positive tracking, never below 10px. */
+  .label-caps {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 600;
+    line-height: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* One tile of the docking grid. Radius stays 0 so adjacent tiles form a continuous hairline
+     seam rather than leaving rounded gaps in the middle of the workspace. */
+  .pane {
+    background: var(--panel);
+    border: 1px solid var(--seam);
+    border-radius: 0;
+    padding: var(--spacing-pane, 0.75rem);
+  }
+
+  .dense-row {
+    height: var(--spacing-dense-row, 1.375rem);
+  }
+}
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .mobile-safe-bottom {
+    height: calc(68px + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .mobile-page-bottom {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 767px) {
+  body {
+    min-width: 320px;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
