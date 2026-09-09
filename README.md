@@ -62,4 +62,13 @@ live verification of the ledger's hash chain.
 
 The Replay Terminal renders its docking layout in a resting state and says so; it does not show
 invented candles or balances. Trade Journal and Performance Analytics name the sprint that builds
-them. `PLAN.md` has the full breakdown.
+them.
+
+## Requirements
+
+`docs/requirements/` holds the specification this app is measured against — the approved PRD, a
+register giving every requirement a stable ID traced to its PRD section and owning sprint, and one
+document per sprint with tasks, acceptance criteria, tests and risks. Start at
+[`docs/requirements/README.md`](docs/requirements/README.md).
+
+`PLAN.md` is the shorter architectural companion to that folder.
