@@ -20,7 +20,7 @@ the browser enforces is a rule a `curl` command ignores.
 | ID | Rule | PRD | Owner | Sprint | Status |
 |---|---|---|---|---|---|
 | BR-01 | The instrument, real dates and macro context of an active session are never disclosed before an explicit reveal | §1.2, §3.1 | BE | 02 | DONE |
-| BR-02 | The replay cursor is server-authoritative; a client cannot obtain a bar past it | §3.1 | BE | 03 | PLANNED |
+| BR-02 | The replay cursor is server-authoritative; a client cannot obtain a bar past it | §3.1 | BE | 03A | DONE |
 | BR-03 | No entry order is accepted without a hard stop loss | §3.3 | BE | 04 | PLANNED |
 | BR-04 | An order below the account's minimum R:R is rejected, never silently resized | §3.3 | BE | 04 | PLANNED |
 | BR-05 | Breaching the account's max daily drawdown halts trading for the session | §3.3 | BE | 04 | PLANNED |
@@ -29,7 +29,7 @@ the browser enforces is a rule a `curl` command ignores.
 | BR-08 | A session may be revealed exactly once, and only after it is closed | §3.4 | BE | 05 | PLANNED |
 | BR-09 | A rejected order is recorded, not discarded — the discipline index needs the attempts | §3.4 | BE | 04 | PLANNED |
 | BR-10 | Replay is deterministic: same feed and seed produce identical fills | §6.3 | BE | 03 | PLANNED |
-| BR-11 | Exactly one live iteration per account tree, and one open session per account | §3.5 | BE | 01 / 03 | 01 DONE |
+| BR-11 | Exactly one live iteration per account tree, and one open session per account | §3.5 | BE | 01 / 03A | DONE |
 
 ## 2. Functional requirements (FR)
 
@@ -62,13 +62,13 @@ the browser enforces is a rule a `curl` command ignores.
 
 | ID | Requirement | Owner | Sprint | Status |
 |---|---|---|---|---|
-| FR-REPLAY-01 | Create a session binding an account to a feed with a deterministic seed | BE | 03 | PLANNED |
-| FR-REPLAY-02 | Step forward and backward one bar (`Spacebar`) | BOTH | 03 | PLANNED |
-| FR-REPLAY-03 | Continuous playback at 0.5x / 1x / 3x / 5x / 10x | BOTH | 03 | PLANNED |
-| FR-REPLAY-04 | Progress indicator (`142 / 500 bars scanned`) | FE | 03 | PLANNED |
+| FR-REPLAY-01 | Create a session binding an account to a feed with a deterministic seed | BE | 03A | DONE |
+| FR-REPLAY-02 | Step forward and backward one bar (`Spacebar`) | BOTH | 03A/03C | DONE |
+| FR-REPLAY-03 | Continuous playback at 0.5x / 1x / 3x / 5x / 10x | BOTH | 03A/03E | Speed control DONE; continuous streaming in 03E |
+| FR-REPLAY-04 | Progress indicator (`142 / 500 bars scanned`) | FE | 03C | DONE |
 | FR-REPLAY-05 | Websocket streams frames at playback speed, resumable from the cursor | BOTH | 03 | PLANNED |
-| FR-REPLAY-06 | Multi-timeframe toggle (1m / 5m / 15m / 1h / 4h / 1D) over the same cursor | BOTH | 03 | PLANNED |
-| FR-REPLAY-07 | Pause, seek, close; idle sessions time out | BOTH | 03 | PLANNED |
+| FR-REPLAY-06 | Multi-timeframe toggle (1m / 5m / 15m / 1h / 4h / 1D) over the same cursor | BOTH | 03B/03C | DONE |
+| FR-REPLAY-07 | Pause, seek, close; idle sessions time out | BOTH | 03A/03C | DONE except the idle sweeper |
 | FR-REPLAY-08 | Simulated feed latency surfaced in the UI | BOTH | 03 | PLANNED |
 
 ### 2.4 Technical analysis ribbon — `FR-TA` (PRD §3.2)
@@ -187,7 +187,7 @@ the browser enforces is a rule a `curl` command ignores.
 | 00 | Foundation and infrastructure | NFR-06, NFR-08 | DONE |
 | 01 | Identity, accounts and reset trees | FR-AUTH-01..04, FR-ACCT-01..05, FR-UI-01/02/05/07, BR-06/07/11, NFR-07 | DONE |
 | 02 | Market data and blinded feeds | FR-FEED-01..07, BR-01, NFR-05 | PLANNED |
-| 03 | Replay session engine and terminal | FR-REPLAY-01..08, FR-TA-01..05/07/08/10, FR-UI-03/08/12, BR-02/10, NFR-01..04 | PLANNED |
+| 03 | Replay session engine and terminal | FR-REPLAY-01..08, FR-TA-01..05/07/08/10, FR-UI-03/08/12, BR-02/10, NFR-01..04 | IN PROGRESS — 03A/03B/03C done, 03D/03E/03F planned |
 | 04 | Execution and the risk gate | FR-EXEC-01..12, FR-TA-06, FR-UI-09, BR-03/04/05/09 | PLANNED |
 | 05 | Journal, drawings and the mystery reveal | FR-JOURNAL-01..06, FR-REVEAL-01..03, FR-TA-11, FR-UI-04/10, BR-08 | PLANNED |
 | 06 | Analytics, discipline index and cross-iteration | FR-ANALYTICS-01..09, FR-REVEAL-04/05, FR-ACCT-06..09, FR-TA-09, FR-UI-06/11 | PLANNED |
