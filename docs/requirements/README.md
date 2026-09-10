@@ -66,3 +66,9 @@ Sprint 03 carries NFR-02 — 60 FPS at 10x with overlays — and the charting de
 reachable or not. That decision is made and measured in the first two days of the sprint, before
 anything is built on top of it, and recorded as an ADR. Discovering it in Sprint 06 would mean
 rewriting the terminal.
+
+## Reviews
+
+Post-sprint reviews live in the **backend** repository under
+[`docs/reviews/`](https://github.com/jonathanch96/blindpulse-be/tree/main/docs/reviews), because the
+product-level sprint plans do. They cover both repositories: frontend findings carry an `FE-` prefix.
