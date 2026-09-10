@@ -1,6 +1,21 @@
 # Sprint 03 — Replay Terminal (frontend)
 
-**Status:** PLANNED · **Estimate:** 15–18 dev-days — the largest frontend sprint
+**Status:** IN PROGRESS · **Estimate:** 15–18 dev-days — the largest frontend sprint
+
+## Delivery slices
+
+Shared numbering with `blindpulse-be`. This document covers the frontend slices.
+
+| Slice | Scope | Status |
+|---|---|---|
+| 03C | Session wiring — start from a feed, transport, progress, timeframe, rewind banner | **DONE** |
+| 03D | Chart canvas at 60 FPS with EMAs, RSI and scale modes | Planned |
+| 03E | Websocket streaming, reconnect and backpressure | Planned |
+| 03F | Drawing tools — fibonacci, trendlines, zones | Planned |
+
+03C ships an SVG candle strip rather than the canvas: enough to see price action and prove the
+cursor moves, deliberately not the chart. 03D replaces it, because SVG cannot hold 60 FPS at 10x
+with overlays (NFR-02).
 **Requirements:** FR-REPLAY-02..08, FR-TA-01..05/07/08/10, FR-UI-03/08/12, NFR-02, NFR-04
 **PRD:** §3.1, §3.2, §6.2, §6.4
 **Consumes:** backend Sprint 03 · **Blocks:** Sprints 04, 05

@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 
-import { ReplayTerminal } from "@/features/replay/replay-terminal"
+import { TerminalRouter } from "@/features/replay/terminal-router"
 
 export const metadata: Metadata = { title: "Replay Terminal" }
 
 export default function TerminalPage() {
-  return <ReplayTerminal />
+  return <TerminalRouter />
 }

@@ -1,11 +1,18 @@
 "use client"
 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Lock } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
+import { fetchAccountTrees } from "@/features/account/api"
 import { difficultyCopy } from "@/features/feed/labels"
 import type { Feed, FeedDetail } from "@/features/feed/types"
+import { startSession } from "@/features/session/api"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { apiErrorMessage } from "@/lib/envelope"
+import { qk } from "@/lib/query-keys"
 
 function isDetail(feed: Feed | FeedDetail): feed is FeedDetail {
   return "volatilityBand" in feed
@@ -16,6 +23,25 @@ function isDetail(feed: Feed | FeedDetail): feed is FeedDetail {
 // honest moment to say what the trader is and is not being told.
 export function RandomizeDialog({ feed, onClose }: { feed: Feed | FeedDetail | null; onClose: () => void }) {
   const open = feed !== null
+  const router = useRouter()
+  const queryClient = useQueryClient()
+
+  // A session needs an account, because the account carries the risk policy the order gate will
+  // enforce. Without one there is nothing to trade against, so the dialog says so rather than
+  // failing at submit.
+  const { data: trees } = useQuery({ queryKey: qk.accounts(), queryFn: fetchAccountTrees, enabled: open })
+  const activeAccountId = trees?.find((tree) => tree.activeAccountId)?.activeAccountId ?? null
+
+  const start = useMutation({
+    mutationFn: () => startSession(activeAccountId!, feed!.id, feed!.timeframe),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: qk.sessions() })
+      onClose()
+      router.push("/terminal")
+    },
+    onError: (error) => toast.error(apiErrorMessage(error, "Could not start the session")),
+  })
+
   return (
     <Dialog open={open} onOpenChange={(next) => (next ? undefined : onClose())}>
       <DialogContent className="rounded-md sm:max-w-md">
@@ -47,19 +73,23 @@ export function RandomizeDialog({ feed, onClose }: { feed: Feed | FeedDetail | n
               {difficultyCopy[feed.difficulty].blurb}
             </p>
 
-            {/* Sprint 03 turns this into POST /sessions. Until the engine exists, say so in words
-                rather than shipping a button that looks live and does nothing — a dead control is
-                worse than an absent one, because the trader blames themselves for it. */}
-            <p className="border border-seam bg-panel-raised px-3 py-2 text-xs text-muted-foreground">
-              The replay engine lands in Sprint 03. This feed is ready for it; sessions cannot be started yet.
-            </p>
+            {activeAccountId ? null : (
+              <p className="border border-bearish/40 bg-bearish-muted px-3 py-2 text-xs text-bearish">
+                You need an open replay portfolio first — the account carries the risk policy the order gate applies.
+                Open one under Accounts &amp; Resets.
+              </p>
+            )}
 
             <DialogFooter>
               <Button variant="outline" className="rounded-sm" onClick={onClose}>
-                Close
+                Not this one
               </Button>
-              <Button className="rounded-sm opacity-50" disabled aria-disabled="true">
-                Start session
+              <Button
+                className="rounded-sm"
+                disabled={!activeAccountId || start.isPending}
+                onClick={() => start.mutate()}
+              >
+                {start.isPending ? "Starting…" : "Start session"}
               </Button>
             </DialogFooter>
           </>
