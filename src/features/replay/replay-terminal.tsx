@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { ChevronsRight, Lock, Pause, SkipBack, SkipForward } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -141,7 +142,10 @@ function SessionPrompt() {
       </p>
       <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <ChevronsRight className="size-3.5" aria-hidden="true" />
-        Open a replay portfolio under Accounts &amp; Resets to be ready for it.
+        <Link href="/feeds" className="text-telemetry hover:underline">
+          Browse blinded feeds
+        </Link>
+        , then open a replay portfolio under Accounts &amp; Resets.
       </p>
     </div>
   )

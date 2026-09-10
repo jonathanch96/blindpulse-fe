@@ -1,6 +1,6 @@
 # Sprint 02 — Feed selection (frontend)
 
-**Status:** PLANNED · **Estimate:** 4–5 dev-days
+**Status:** DONE · **Estimate:** 4–5 dev-days
 **Requirements:** FR-FEED-05..07, FR-UI-07 (entry point)
 **PRD:** §3.1
 **Consumes:** backend Sprint 02 · **Blocks:** Sprint 03
@@ -51,5 +51,19 @@ change that the frontend has not absorbed fails the build rather than surfacing 
   deleting the test on purpose.
 
 ## Definition of done
-A trader can browse or randomize a feed and start a session, with nothing on screen that could
-identify the instrument.
+A trader can browse or randomize a feed, with nothing on screen that could identify the instrument.
+
+## Delivered
+
+`/feeds` renders the catalogue with difficulty and timeframe filters, a randomize action, and a
+confirm dialog. `src/features/feed/types.ts` mirrors the backend's blinded contract and has no
+field for a symbol, an instrument id or a window — `blinding.test.ts` fails the build if one
+appears, and was verified to fail when identity fields were deliberately added.
+
+Two deviations from the plan, both deliberate:
+
+- **Starting a session is not wired.** The dialog says so in words instead of shipping a button
+  that looks live and does nothing; `POST /sessions` arrives in Sprint 03.
+- **`src/proxy.ts` lost its `/account/:path*` matcher**, which protected a route that has never
+  existed — a leftover from the tripmate port found while adding `/feeds`. The account settings
+  screen it implied is still missing, and `FR-AUTH-04` is marked accordingly.

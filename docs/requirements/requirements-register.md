@@ -19,7 +19,7 @@ the browser enforces is a rule a `curl` command ignores.
 
 | ID | Rule | PRD | Owner | Sprint | Status |
 |---|---|---|---|---|---|
-| BR-01 | The instrument, real dates and macro context of an active session are never disclosed before an explicit reveal | §1.2, §3.1 | BE | 02 | PLANNED |
+| BR-01 | The instrument, real dates and macro context of an active session are never disclosed before an explicit reveal | §1.2, §3.1 | BE | 02 | DONE |
 | BR-02 | The replay cursor is server-authoritative; a client cannot obtain a bar past it | §3.1 | BE | 03 | PLANNED |
 | BR-03 | No entry order is accepted without a hard stop loss | §3.3 | BE | 04 | PLANNED |
 | BR-04 | An order below the account's minimum R:R is rejected, never silently resized | §3.3 | BE | 04 | PLANNED |
@@ -40,7 +40,7 @@ the browser enforces is a rule a `curl` command ignores.
 | FR-AUTH-01 | Email + password registration and sign-in, Argon2id hashing | BOTH | 01 | DONE |
 | FR-AUTH-02 | Rotating refresh tokens, short-lived HS256 access tokens | BOTH | 01 | DONE |
 | FR-AUTH-03 | Google OAuth sign-in | BOTH | 01 | DONE |
-| FR-AUTH-04 | Profile read/update and password change | BOTH | 01 | DONE |
+| FR-AUTH-04 | Profile read/update and password change | BOTH | 01 | PARTIAL — API and BFF routes done; the account settings screen is not built |
 | FR-AUTH-05 | TradingView SSO | BOTH | 07 | PLANNED |
 | FR-AUTH-06 | Enterprise SAML 2.0 / Okta for prop desks and academies | BOTH | 07 | PLANNED |
 | FR-AUTH-07 | GitHub and Apple OAuth | BOTH | 07 | PLANNED |
@@ -50,11 +50,11 @@ the browser enforces is a rule a `curl` command ignores.
 
 | ID | Requirement | Owner | Sprint | Status |
 |---|---|---|---|---|
-| FR-FEED-01 | Ingest historical OHLCV for FX majors, equity indices, commodities and crypto | BE | 02 | PLANNED |
+| FR-FEED-01 | Ingest historical OHLCV for FX majors, equity indices, commodities and crypto | BE | 02 | DONE |
 | FR-FEED-02 | Randomized slicing across 1,200+ cycles spanning 2008–2025 | BE | 02 | PLANNED |
-| FR-FEED-03 | Price normalization (scale + offset) so price levels cannot identify the instrument | BE | 02 | PLANNED |
-| FR-FEED-04 | Synthetic alias (`Asset #842 [FX/Crypto Masked]`) in place of the ticker | BE | 02 | PLANNED |
-| FR-FEED-05 | Relative tick offsets (`T-140`, `T-0`) in place of calendar dates | BOTH | 02 | PLANNED |
+| FR-FEED-03 | Price normalization (scale + offset) so price levels cannot identify the instrument | BE | 02 | DONE |
+| FR-FEED-04 | Synthetic alias (`Asset #842 [FX/Crypto Masked]`) in place of the ticker | BE | 02 | DONE |
+| FR-FEED-05 | Relative tick offsets (`T-140`, `T-0`) in place of calendar dates | BOTH | 02 | DONE |
 | FR-FEED-06 | Feed catalogue exposing alias, asset-class hint, difficulty and bar count — and nothing else | BOTH | 02 | PLANNED |
 | FR-FEED-07 | "Randomize new starting point" picks an unseen feed for the trader | BOTH | 02 | PLANNED |
 
@@ -173,7 +173,7 @@ the browser enforces is a rule a `curl` command ignores.
 | NFR-02 | Candlestick canvas sustains 60 FPS at 10x with overlays | §6.2 | FE | 03 | Frame-drop budget measured under sustained 10x |
 | NFR-03 | Deterministic session hashes over every action and fill | §6.3 | BE | 03 | Property test: same feed + seed ⇒ identical fills and hash |
 | NFR-04 | Full touch gestures on mobile web / PWA | §6.4 | FE | 03 | Playwright mobile project |
-| NFR-05 | Zero hindsight leakage in any pre-reveal payload | §1.2, §3.1 | BE | 02 | Response-shape test per endpoint |
+| NFR-05 | Zero hindsight leakage in any pre-reveal payload | §1.2, §3.1 | BE | 02 | **DONE** — backend payload/struct guards plus `src/features/feed/blinding.test.ts`, both verified non-vacuous |
 | NFR-06 | Events are durable and at-least-once; a broker outage loses nothing | — | BE | 00 | Outbox rows stay pending through an outage; verified locally | 
 | NFR-07 | Immutable, verifiable history | §6.3 | BE | 01 | Chain recomputation; tamper test against a row altered in-database |
 | NFR-08 | Decimal precision preserved end to end for price, size and balance | — | BOTH | 01 | ESLint ban on float conversion in features; decimal.js and Go decimal throughout |
