@@ -33,7 +33,15 @@ const eslintConfig = defineConfig([
     // Every surface that handles a price, a size, a balance or an R-multiple. These are decimal
     // strings from the API, and a stop loss that has been through parseFloat is a stop loss the
     // server and the screen no longer agree on.
-    files: ["src/features/account/**/*.{ts,tsx}", "src/features/replay/**/*.{ts,tsx}", "src/features/journal/**/*.{ts,tsx}", "src/features/analytics/**/*.{ts,tsx}"],
+    files: [
+      "src/features/account/**/*.{ts,tsx}",
+      "src/features/replay/**/*.{ts,tsx}",
+      "src/features/session/**/*.{ts,tsx}",
+      "src/features/feed/**/*.{ts,tsx}",
+      "src/features/chart/**/*.{ts,tsx}",
+      "src/features/journal/**/*.{ts,tsx}",
+      "src/features/analytics/**/*.{ts,tsx}",
+    ],
     plugins: { "blindpulse-money": moneySafetyPlugin },
     rules: {
       "no-restricted-globals": ["error", { name: "parseFloat", message: "Use decimal.js for prices, sizes and balances." }],

@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Lock, Square } from "lucide-react"
-import { useCallback, useEffect } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 
 import {
@@ -15,9 +15,11 @@ import {
   setSessionTimeframe,
   stepSession,
 } from "@/features/session/api"
-import { CandleStrip } from "@/features/session/components/candle-strip"
 import { TransportBar } from "@/features/session/components/transport-bar"
-import type { ReplaySession } from "@/features/session/types"
+import { PriceChart } from "@/features/chart/price-chart"
+import { ScaleModeToggle } from "@/features/chart/scale-mode-toggle"
+import type { ScaleMode } from "@/features/chart/types"
+import type { ReplaySession, SessionBar } from "@/features/session/types"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { apiErrorMessage } from "@/lib/envelope"
@@ -28,6 +30,8 @@ const timeframes = ["15m", "30m", "1h", "4h", "1d"] as const
 
 export function SessionTerminal({ sessionId }: { sessionId: string }) {
   const queryClient = useQueryClient()
+  const [scaleMode, setScaleMode] = useState<ScaleMode>("auto")
+  const [readout, setReadout] = useState<SessionBar | null>(null)
 
   const { data: session, isPending } = useQuery({
     queryKey: qk.session(sessionId),
@@ -146,12 +150,26 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
       </div>
 
       <section className="flex min-h-0 flex-1 flex-col bg-panel" aria-label="Price">
-        <p className="label-caps flex items-center justify-between border-b border-seam px-3 py-1.5 text-muted-foreground">
-          <span>Price · {view?.timeframe ?? session.timeframe} · {view?.bars.length ?? 0} bars released</span>
-          <span>Indicators, drawing tools and 60 FPS playback land in slice 03D</span>
-        </p>
-        <div className="min-h-0 flex-1 p-3">
-          <CandleStrip bars={view?.bars ?? []} />
+        <div className="flex items-center justify-between gap-3 border-b border-seam px-3 py-1.5">
+          <p className="label-caps text-muted-foreground">
+            Price · {view?.timeframe ?? session.timeframe} · {view?.bars.length ?? 0} bars · EMA 20/50/200 · RSI 14
+          </p>
+          <div className="flex items-center gap-3">
+            {readout ? (
+              <span className="metric text-[11px] text-muted-foreground">
+                O {readout.open} H {readout.high} L {readout.low} C {readout.close}
+                {readout.forming ? " · forming" : ""}
+              </span>
+            ) : null}
+            <ScaleModeToggle mode={scaleMode} onChange={setScaleMode} />
+          </div>
+        </div>
+        <div className="min-h-0 flex-1">
+          <PriceChart
+            bars={view?.bars ?? []}
+            scaleMode={scaleMode}
+            onReadout={setReadout}
+          />
         </div>
       </section>
 
@@ -165,3 +183,4 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
     </div>
   )
 }
+

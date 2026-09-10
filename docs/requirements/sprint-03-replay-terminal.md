@@ -9,13 +9,50 @@ Shared numbering with `blindpulse-be`. This document covers the frontend slices.
 | Slice | Scope | Status |
 |---|---|---|
 | 03C | Session wiring — start from a feed, transport, progress, timeframe, rewind banner | **DONE** |
-| 03D | Chart canvas at 60 FPS with EMAs, RSI and scale modes | Planned |
+| 03D | Chart canvas at 60 FPS with EMAs, RSI and scale modes | **DONE** |
 | 03E | Websocket streaming, reconnect and backpressure | Planned |
 | 03F | Drawing tools — fibonacci, trendlines, zones | Planned |
 
 03C ships an SVG candle strip rather than the canvas: enough to see price action and prove the
 cursor moves, deliberately not the chart. 03D replaces it, because SVG cannot hold 60 FPS at 10x
-with overlays (NFR-02).
+with overlays (NFR-02) — the spike behind that claim is measured in
+[`docs/adr/0001-chart-rendering.md`](../adr/0001-chart-rendering.md).
+
+### Slice 03D — delivered
+
+- `docs/adr/0001-chart-rendering.md` — the rendering decision, taken against measured numbers
+  rather than asserted: canvas draws the complete frame (candles + volume + 3 EMAs + RSI) in
+  **4.4 ms p99**; SVG needs **7.0 ms p99** for the candles alone. `lightweight-charts` was rejected
+  on the drawing-tool and server-cursor requirements, not on speed.
+- `src/lib/chart-math.ts` — the pure numeric kernel: `toPlotValue`, `buildScale` for
+  `auto | log | percent`, `niceTicks`, `ema`, `rsi` (Wilder's). This is the one **documented
+  exception** to the money-arithmetic lint rule: pixel geometry is float work by nature, and the
+  boundary is enforced by the rule covering every other slice.
+- `src/features/chart/` — `theme.ts` (palette read from the CSS custom properties, so the chart
+  follows the theme toggle rather than hard-coding colours), `render.ts` (layout + the pure
+  `drawFrame`), `price-chart.tsx` (two stacked canvases, DPR-aware, `ResizeObserver`, Pointer
+  Events), `scale-mode-toggle.tsx`.
+- The crosshair reads OHLC out on the interaction layer only; the price layer is not redrawn on
+  pointer move.
+- The forming higher-timeframe bar is dashed and hollow (`setLineDash([2, 2])` + `strokeRect`),
+  never a closed candle (03-AC-4).
+- A `sr-only` `role="status"` summary gives the canvas a text alternative, since a canvas is
+  otherwise opaque to a screen reader.
+- The eslint money rule was widened to the `session`, `feed` and `chart` slices; it immediately
+  caught the `Number()` calls in the 03C SVG strip, which 03D deletes.
+
+**NFR-02 measured in the browser**, 200 bars released at 10x with EMAs and RSI live:
+**60.3 FPS sustained over 182 frames, 0 dropped frames, inter-frame gap p99 16.80 ms.** The first
+measurement was discarded because it timed `requestAnimationFrame` *pacing* (which is capped at the
+display's 60 Hz and so can only ever report ~60) rather than draw cost; the recorded number pairs
+the pacing with the dropped-frame count, which is the part that can actually fail.
+
+Two items from the plan below are deliberately **not** in 03D:
+- **Indicators in a worker** (03.6) — unnecessary at the measured cost. EMA and RSI over the
+  visible window are ~1 ms; a worker would add a postMessage hop and a second copy of the bar array
+  to save nothing. Revisit only if a heavier indicator lands.
+- **The offscreen buffer** (03.1) — the two-layer split already keeps pointer moves off the price
+  layer, and the static layer redraws in 4.4 ms. Adding a third surface would be speculative.
 **Requirements:** FR-REPLAY-02..08, FR-TA-01..05/07/08/10, FR-UI-03/08/12, NFR-02, NFR-04
 **PRD:** §3.1, §3.2, §6.2, §6.4
 **Consumes:** backend Sprint 03 · **Blocks:** Sprints 04, 05
