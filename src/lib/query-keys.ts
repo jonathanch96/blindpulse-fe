@@ -9,6 +9,10 @@ export const qk = {
   // Bars are keyed by the cursor as well as the session: a replay frame is only valid for the
   // bar index it was fetched at, so a stale window must never be served from cache after a step.
   sessionBars: (sessionId: string, cursor: number) => [...qk.session(sessionId), "bars", cursor] as const,
+  // The rolled-up view is keyed by timeframe but not by the cursor: during playback the stream
+  // mutates this entry in place, and a key that moved with the edge would refetch the whole window
+  // for every bar released.
+  sessionView: (sessionId: string, timeframe: string) => [...qk.session(sessionId), "view", timeframe] as const,
   sessionOrders: (sessionId: string) => [...qk.session(sessionId), "orders"] as const,
   sessionTrades: (sessionId: string) => [...qk.session(sessionId), "trades"] as const,
   sessionPositions: (sessionId: string) => [...qk.session(sessionId), "positions"] as const,

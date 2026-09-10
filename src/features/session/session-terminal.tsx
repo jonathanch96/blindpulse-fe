@@ -19,6 +19,8 @@ import { TransportBar } from "@/features/session/components/transport-bar"
 import { PriceChart } from "@/features/chart/price-chart"
 import { ScaleModeToggle } from "@/features/chart/scale-mode-toggle"
 import type { ScaleMode } from "@/features/chart/types"
+import type { StreamStatus } from "@/features/session/stream"
+import { useReplayStream } from "@/features/session/use-replay-stream"
 import type { ReplaySession, SessionBar } from "@/features/session/types"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -38,13 +40,21 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
     queryFn: () => fetchSession(sessionId),
   })
 
-  // Bars are keyed by the revealed edge and the timeframe, so a stale window can never be served
-  // from cache after a step — showing the trader the wrong bar is the one thing this must not do.
+  // Bars are keyed by the timeframe but not by the revealed edge. Under 03C the edge was part of
+  // the key, so a step invalidated the window and refetched it; now the stream folds each released
+  // bar into this entry in place, and refetching per bar at 10x would be forty round trips a
+  // second. Freshness comes from the socket, and from the gap check that refetches when frames
+  // were dropped.
   const { data: view } = useQuery({
-    queryKey: [...qk.session(sessionId), "view", session?.timeframe ?? "", session?.revealedIndex ?? -1],
-    queryFn: () => fetchSessionView(sessionId),
+    queryKey: qk.sessionView(sessionId, session?.timeframe ?? ""),
+    queryFn: () => fetchSessionView(sessionId, session?.timeframe),
     enabled: Boolean(session),
   })
+
+  const closed = session?.status === "closed" || session?.status === "abandoned"
+  // Nothing to stream from a session that has ended, and a socket that reconnected forever against
+  // a closed session would be a retry loop with no possible outcome.
+  const stream = useReplayStream(sessionId, { enabled: Boolean(session) && !closed })
 
   const refresh = useCallback(
     (next: ReplaySession | null) => {
@@ -97,7 +107,6 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
     )
   }
 
-  const closed = session.status === "closed" || session.status === "abandoned"
   const rewound = session.cursorIndex < session.revealedIndex
 
   return (
@@ -134,7 +143,8 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
           </span>
         ) : null}
 
-        <span className="metric ml-auto text-xs text-muted-foreground">
+        <span className="metric ml-auto flex items-center gap-2 text-xs text-muted-foreground">
+          {closed ? null : <StreamIndicator status={stream.status} latencyMs={stream.latencyMs} />}
           {closed ? "Session closed" : `${session.status} · ${session.speed}x`}
         </span>
         <Button
@@ -184,3 +194,30 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
   )
 }
 
+// StreamIndicator is the FR-REPLAY-08 readout: the feed latency the server measured, next to a
+// state the trader can act on. It reports the connection honestly — a terminal that looks live
+// while its socket is down is worse than one that admits it is reconnecting, because the trader
+// would be reading a frozen chart as a quiet market.
+function StreamIndicator({ status, latencyMs }: { status: StreamStatus; latencyMs: number | null }) {
+  const live = status === "live"
+  const label =
+    status === "live" ? (latencyMs === null ? "live" : `${latencyMs}ms`)
+    : status === "connecting" ? "connecting"
+    : status === "reconnecting" ? "reconnecting"
+    : status === "offline" ? "offline"
+    : "idle"
+  return (
+    <span
+      className={cn(
+        "label-caps flex items-center gap-1.5 border px-1.5 py-0.5",
+        live ? "border-primary/40 text-primary" : "border-bearish/40 text-bearish",
+      )}
+      // The dot is decorative; the text beside it carries the same information, so a screen
+      // reader gets the state without a colour it cannot see.
+      role="status"
+    >
+      <span className={cn("size-1.5 rounded-full", live ? "bg-primary" : "bg-bearish")} aria-hidden="true" />
+      {label}
+    </span>
+  )
+}

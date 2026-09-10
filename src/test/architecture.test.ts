@@ -17,13 +17,27 @@ describe("frontend architecture guards", () => {
     expect(violations).toEqual([])
   })
 
-  it("keeps the backend URL server-only", () => {
+  // The property that matters is not "one file reads it" but "only server code reads it". An
+  // allowlist of filenames would have to be edited every time a legitimate server module needs the
+  // address, and editing a security guard to make it pass is how a guard stops guarding.
+  it("keeps deployment addresses server-only", () => {
     const sourceFiles = filesUnder(path.resolve("src")).filter((file) => /\.[cm]?[jt]sx?$/.test(file) && !file.includes(".test."))
-    const references = sourceFiles.filter((file) => fs.readFileSync(file, "utf8").includes("BACKEND_BASE_URL"))
-    expect(references.map((file) => path.relative(process.cwd(), file))).toEqual(["src/lib/server/backend.ts"])
+    const addressVars = /\b(BACKEND_BASE_URL|REPLAY_WS_URL)\b/
+    const references = sourceFiles.filter((file) => addressVars.test(fs.readFileSync(file, "utf8")))
+    expect(references.length).toBeGreaterThan(0)
 
-    const publicLeaks = sourceFiles.filter((file) => fs.readFileSync(file, "utf8").includes("NEXT_PUBLIC_BACKEND"))
-    expect(publicLeaks).toEqual([])
+    const escaped = references.filter((file) => {
+      const source = fs.readFileSync(file, "utf8")
+      // Under src/lib/server *and* carrying the server-only import: the directory is a convention,
+      // the import is what actually fails the build if the module is pulled into a client bundle.
+      return !file.includes(`${path.sep}lib${path.sep}server${path.sep}`) || !/^import "server-only"$/m.test(source)
+    })
+    expect(escaped.map((file) => path.relative(process.cwd(), file))).toEqual([])
+
+    // NEXT_PUBLIC_ is inlined into the client bundle by definition, so an internal address behind
+    // that prefix is published whatever else the code does.
+    const publicLeaks = sourceFiles.filter((file) => /NEXT_PUBLIC_(BACKEND|REPLAY)/.test(fs.readFileSync(file, "utf8")))
+    expect(publicLeaks.map((file) => path.relative(process.cwd(), file))).toEqual([])
   })
 
   // A <form> defaults to method="get", so a submit landing before React hydrates navigates with

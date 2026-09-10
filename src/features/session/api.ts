@@ -27,6 +27,17 @@ export async function fetchSessionView(id: string, timeframe?: string): Promise<
   return envelope.data
 }
 
+export type StreamTicket = { ticket: string; url: string; expiresInSeconds: number }
+
+// Tickets are single-use and short-lived, so this is called once per connection attempt rather
+// than cached. The URL comes back resolved by the BFF: the browser never builds it.
+export async function fetchStreamTicket(id: string): Promise<StreamTicket | null> {
+  const envelope = await apiFetch<StreamTicket>(`/api/sessions/${encodeURIComponent(id)}/stream-ticket`, {
+    method: "POST",
+  })
+  return envelope.data
+}
+
 async function command(id: string, action: string, body?: unknown): Promise<ReplaySession | null> {
   const envelope = await apiFetch<ReplaySession>(`/api/sessions/${encodeURIComponent(id)}/${action}`, {
     method: "POST",

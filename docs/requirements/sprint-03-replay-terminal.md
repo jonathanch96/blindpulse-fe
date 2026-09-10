@@ -10,13 +10,49 @@ Shared numbering with `blindpulse-be`. This document covers the frontend slices.
 |---|---|---|
 | 03C | Session wiring — start from a feed, transport, progress, timeframe, rewind banner | **DONE** |
 | 03D | Chart canvas at 60 FPS with EMAs, RSI and scale modes | **DONE** |
-| 03E | Websocket streaming, reconnect and backpressure | Planned |
+| 03E | Websocket streaming, reconnect and backpressure | **DONE** |
 | 03F | Drawing tools — fibonacci, trendlines, zones | Planned |
 
 03C ships an SVG candle strip rather than the canvas: enough to see price action and prove the
 cursor moves, deliberately not the chart. 03D replaces it, because SVG cannot hold 60 FPS at 10x
 with overlays (NFR-02) — the spike behind that claim is measured in
 [`docs/adr/0001-chart-rendering.md`](../adr/0001-chart-rendering.md).
+
+### Slice 03E — delivered
+
+`useReplayStream` holds one socket per session and folds frames into the query cache. The server
+drives; this renders what it is told, and sends exactly one message — a hello announcing where it
+thinks it is, only after detecting a gap. The server answers with its own cursor either way, so
+the claim changes nothing (BR-02).
+
+- `src/features/session/stream.ts` — the pure half: `decodeFrame` (the only place that knows the
+  wire is snake_case, because frames come from the Go API rather than through the BFF and nothing
+  camelized them), `mergeBar`, `hasGap`, `applyFrame`, `nextBackoffMs`.
+- `mergeBar` replaces the last bar when the index repeats and appends when it advances. One rule:
+  on a higher timeframe the tail bar is the forming bucket whose index repeats until it closes, so
+  the same path animates the forming bar and lands the closed one.
+- `hasGap` makes latest-wins backpressure recoverable. Skipped bars are detectable, so the client
+  refetches the window rather than drawing a chart with a hole that reads as a real price gap.
+- Reconnect backs off exponentially with **full jitter**: an API restart drops every socket at
+  once, and without jitter they would all return in lockstep and knock the instance over as it
+  comes up.
+- `src/app/api/sessions/[id]/stream-ticket/` mints the ticket and resolves the socket URL
+  server-side. The browser never builds it, so deployment topology stays where it is configured.
+- The bars query key lost its revealed-edge segment. Under 03C a step invalidated the window and
+  refetched it; at 10x that would now be forty round trips a second. Freshness comes from the
+  socket and from the gap check.
+- The terminal shows the FR-REPLAY-08 latency readout beside a connection state, and reports that
+  state honestly — a terminal that looks live while its socket is down has the trader reading a
+  frozen chart as a quiet market.
+
+**A bug this slice found:** a configured `wss://` was silently downgraded to `ws://`, because the
+scheme mapping was a blanket "https means wss, everything else means ws". Dropping TLS because of
+a config format is not a decision that function gets to make. The architecture guard also stopped
+naming one allowed file and now asserts the property it cares about — that every module reading a
+deployment address is under `lib/server` *and* carries the `server-only` import.
+
+**Measured live:** 4–6ms latency at the socket, pause stops the clock, 10x releases ~27 bars/s,
+and killing the API flips the badge to RECONNECTING and recovers with the position intact.
 
 ### Slice 03D — delivered
 
