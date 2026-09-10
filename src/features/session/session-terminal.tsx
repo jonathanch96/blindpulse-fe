@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Lock, Square } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useReducer, useState } from "react"
 import { toast } from "sonner"
 
 import {
@@ -17,6 +17,8 @@ import {
 } from "@/features/session/api"
 import { TransportBar } from "@/features/session/components/transport-bar"
 import { PriceChart } from "@/features/chart/price-chart"
+import { DrawingToolbar } from "@/features/drawing/drawing-toolbar"
+import { drawingReducer, initialDrawingState, visibleOn } from "@/features/drawing/reducer"
 import { ScaleModeToggle } from "@/features/chart/scale-mode-toggle"
 import type { ScaleMode } from "@/features/chart/types"
 import type { StreamStatus } from "@/features/session/stream"
@@ -34,6 +36,10 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
   const queryClient = useQueryClient()
   const [scaleMode, setScaleMode] = useState<ScaleMode>("auto")
   const [readout, setReadout] = useState<SessionBar | null>(null)
+  // Drawings live in component state for now. Persistence is Sprint 05 (FR-TA-11), and building
+  // the storage round trip before the tools are settled would be designing a schema for a shape
+  // that is still moving.
+  const [drawing, dispatch] = useReducer(drawingReducer, initialDrawingState)
 
   const { data: session, isPending } = useQuery({
     queryKey: qk.session(sessionId),
@@ -84,19 +90,33 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
 
   const busy = step.isPending || speed.isPending || timeframe.isPending || togglePlay.isPending
 
-  // Spacebar steps, per the PRD. Bound on the window rather than a focused element so it works
-  // wherever the trader's attention is, and skipped while typing so it cannot eat a keystroke.
+  // Keyboard, bound on the window rather than a focused element so it works wherever the trader's
+  // attention is, and skipped while typing so it cannot eat a keystroke.
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
-      if (event.code !== "Space") return
       const target = event.target as HTMLElement | null
       if (target && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))) return
-      event.preventDefault()
-      if (!busy) step.mutate(1)
+      if (event.code === "Space") {
+        event.preventDefault()
+        if (!busy) step.mutate(1)
+        return
+      }
+      if (event.key === "Escape") {
+        // Escape abandons a half-drawn shape and drops the selection, in that order — the trader
+        // pressing it wants out of whatever mode they are in.
+        dispatch({ type: "cancelDraft" })
+        dispatch({ type: "select", id: null })
+        dispatch({ type: "selectTool", tool: "cursor" })
+        return
+      }
+      if ((event.key === "Delete" || event.key === "Backspace") && drawing.selectedId) {
+        event.preventDefault()
+        dispatch({ type: "remove", id: drawing.selectedId })
+      }
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [busy, step])
+  }, [busy, step, drawing.selectedId])
 
   if (isPending || !session) {
     return (
@@ -174,12 +194,37 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
             <ScaleModeToggle mode={scaleMode} onChange={setScaleMode} />
           </div>
         </div>
-        <div className="min-h-0 flex-1">
-          <PriceChart
-            bars={view?.bars ?? []}
-            scaleMode={scaleMode}
-            onReadout={setReadout}
+        <div className="flex min-h-0 flex-1">
+          <DrawingToolbar
+            tool={drawing.tool}
+            magnet={drawing.magnet}
+            hasSelection={drawing.selectedId !== null}
+            drawingCount={visibleOn(drawing.drawings, session.timeframe).length}
+            onTool={(tool) => dispatch({ type: "selectTool", tool })}
+            onToggleMagnet={() => dispatch({ type: "toggleMagnet" })}
+            onDeleteSelected={() => drawing.selectedId && dispatch({ type: "remove", id: drawing.selectedId })}
+            onClearAll={() => dispatch({ type: "clearAll" })}
           />
+          <div className="min-h-0 flex-1">
+            <PriceChart
+              bars={view?.bars ?? []}
+              scaleMode={scaleMode}
+              onReadout={setReadout}
+              surface={{
+                drawings: visibleOn(drawing.drawings, session.timeframe),
+                draft: drawing.draft,
+                draftKind: drawing.draftKind,
+                tool: drawing.tool,
+                magnet: drawing.magnet,
+                timeframe: session.timeframe,
+                selectedId: drawing.selectedId,
+                onPlace: (anchor) => dispatch({ type: "place", anchor, id: crypto.randomUUID(), timeframe: session.timeframe }),
+                onEndStroke: () => dispatch({ type: "endStroke", id: crypto.randomUUID(), timeframe: session.timeframe }),
+                onSelect: (id) => dispatch({ type: "select", id }),
+                onReplaceAnchors: (id, anchors) => dispatch({ type: "replaceAnchors", id, anchors }),
+              }}
+            />
+          </div>
         </div>
       </section>
 

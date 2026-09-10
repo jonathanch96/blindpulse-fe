@@ -41,15 +41,43 @@ export function readPalette(element: HTMLElement | null): ChartPalette {
   }
 }
 
-// Canvas cannot take an oklch() string with an alpha applied after the fact, so tinted fills are
-// built by asking the browser to resolve the colour once and re-emitting it with an alpha.
+// Applies an alpha to a colour of any CSS form.
+//
+// This is subtler than it looks, and it was wrong for a whole slice. `getComputedStyle` does not
+// hand back the text you wrote in the stylesheet: a token declared as `oklch(0.82 0.14 215)` comes
+// back from Chromium as `lab(79.9992% -35.4387 -29.575)`. The first version of this function only
+// recognized `oklch(` and `#`, so it silently returned every colour unchanged — and every "tinted"
+// fill in the chart (volume bars, RSI bands, the crosshair, supply zones) rendered fully opaque.
+//
+// So the rule is by *shape*, not by colour space: CSS Color 4 lets any functional notation carry
+// `/ <alpha>` before the closing paren, and that covers whatever the browser decides to normalize
+// to next. Legacy comma-separated `rgb()` is the one form that cannot, and it becomes `rgba()`.
 export function withAlpha(color: string, alpha: number): string {
-  if (color.startsWith("oklch(")) {
-    return `${color.slice(0, -1)} / ${alpha})`
+  const value = color.trim()
+  if (value === "") return value
+
+  if (value.startsWith("#")) {
+    const hex = value.slice(1)
+    const expand = hex.length === 3 || hex.length === 4 ? [...hex].map((c) => c + c).join("") : hex
+    if (expand.length !== 6 && expand.length !== 8) return value
+    const channels = Number.parseInt(expand.slice(0, 6), 16)
+    return `rgba(${(channels >> 16) & 255}, ${(channels >> 8) & 255}, ${channels & 255}, ${alpha})`
   }
-  if (color.startsWith("#") && color.length === 7) {
-    const value = Number.parseInt(color.slice(1), 16)
-    return `rgba(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}, ${alpha})`
+
+  const open = value.indexOf("(")
+  if (open === -1 || !value.endsWith(")")) return value
+  const fn = value.slice(0, open)
+  const args = value.slice(open + 1, -1)
+
+  // Legacy comma syntax has no slash form; rgb/hsl have an -a spelling that does.
+  if (args.includes(",")) {
+    const parts = args.split(",").map((part) => part.trim())
+    if (fn === "rgb" || fn === "rgba") return `rgba(${parts.slice(0, 3).join(", ")}, ${alpha})`
+    if (fn === "hsl" || fn === "hsla") return `hsla(${parts.slice(0, 3).join(", ")}, ${alpha})`
+    return value
   }
-  return color
+
+  // Modern space-separated syntax: replace an existing alpha, or append one.
+  const base = args.includes("/") ? args.slice(0, args.indexOf("/")).trim() : args.trim()
+  return `${fn}(${base} / ${alpha})`
 }

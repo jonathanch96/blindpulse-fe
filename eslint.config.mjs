@@ -39,6 +39,7 @@ const eslintConfig = defineConfig([
       "src/features/session/**/*.{ts,tsx}",
       "src/features/feed/**/*.{ts,tsx}",
       "src/features/chart/**/*.{ts,tsx}",
+      "src/features/drawing/**/*.{ts,tsx}",
       "src/features/journal/**/*.{ts,tsx}",
       "src/features/analytics/**/*.{ts,tsx}",
     ],

@@ -20,6 +20,15 @@ export type ScaleMode = "auto" | "log" | "percent"
 export type Scale = {
   /** Maps a price to a y coordinate, where 0 is the top of the plot area. */
   toY: (price: number) => number
+  /**
+   * The inverse of toY: the price under a y coordinate.
+   *
+   * Drawing tools need it — an anchor is placed where the pointer is, and the pointer speaks in
+   * pixels. It is display geometry in both directions: the price it returns is what the anchor
+   * snaps *near*, and magnet snapping then replaces it with an exact OHLC decimal from the bar,
+   * so a float never survives into a stored anchor.
+   */
+  toPrice: (y: number) => number
   /** The ticks to label, in price space. */
   ticks: number[]
   /** Renders a tick for the axis, in the units the current mode implies. */
@@ -46,7 +55,7 @@ export function buildScale(
   tickCount = 6,
 ): Scale {
   if (!Number.isFinite(low) || !Number.isFinite(high) || high === low || height <= 0) {
-    return { toY: () => height / 2, ticks: [], format: (price) => price.toFixed(2) }
+    return { toY: () => height / 2, toPrice: () => low, ticks: [], format: (price) => price.toFixed(2) }
   }
 
   if (mode === "log" && low > 0 && high > 0) {
@@ -57,16 +66,21 @@ export function buildScale(
         if (price <= 0) return height
         return height - ((Math.log(price) - logLow) / (logHigh - logLow)) * height
       },
+      toPrice: (y) => Math.exp(logLow + ((height - y) / height) * (logHigh - logLow)),
       ticks: niceTicks(low, high, tickCount),
       format: (price) => price.toFixed(decimalsFor(high - low)),
     }
   }
 
   const toY = (price: number) => height - ((price - low) / (high - low)) * height
+  // Percent is a linear scale wearing a different axis label, so it shares this inverse: the
+  // *position* of a price is identical, only the tick text differs.
+  const toPrice = (y: number) => low + ((height - y) / height) * (high - low)
 
   if (mode === "percent" && basePrice > 0) {
     return {
       toY,
+      toPrice,
       ticks: niceTicks(low, high, tickCount),
       // Signed, because a return without a direction reads as a quantity.
       format: (price) => {
@@ -76,7 +90,7 @@ export function buildScale(
     }
   }
 
-  return { toY, ticks: niceTicks(low, high, tickCount), format: (price) => price.toFixed(decimalsFor(high - low)) }
+  return { toY, toPrice, ticks: niceTicks(low, high, tickCount), format: (price) => price.toFixed(decimalsFor(high - low)) }
 }
 
 /** Chooses tick values on round numbers rather than at even pixel intervals. */

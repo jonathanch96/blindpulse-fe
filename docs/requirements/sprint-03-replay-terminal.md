@@ -1,6 +1,6 @@
 # Sprint 03 — Replay Terminal (frontend)
 
-**Status:** IN PROGRESS · **Estimate:** 15–18 dev-days — the largest frontend sprint
+**Status:** DONE · **Estimate:** 15–18 dev-days — the largest frontend sprint
 
 ## Delivery slices
 
@@ -11,12 +11,61 @@ Shared numbering with `blindpulse-be`. This document covers the frontend slices.
 | 03C | Session wiring — start from a feed, transport, progress, timeframe, rewind banner | **DONE** |
 | 03D | Chart canvas at 60 FPS with EMAs, RSI and scale modes | **DONE** |
 | 03E | Websocket streaming, reconnect and backpressure | **DONE** |
-| 03F | Drawing tools — fibonacci, trendlines, zones | Planned |
+| 03F | Drawing tools — fibonacci, trendlines, zones | **DONE** |
 
 03C ships an SVG candle strip rather than the canvas: enough to see price action and prove the
 cursor moves, deliberately not the chart. 03D replaces it, because SVG cannot hold 60 FPS at 10x
 with overlays (NFR-02) — the spike behind that claim is measured in
 [`docs/adr/0001-chart-rendering.md`](../adr/0001-chart-rendering.md).
+
+### Slice 03F — delivered
+
+The drawing tools, and with them Sprint 03.
+
+- `src/features/drawing/types.ts` — the model. An anchor is a **bar index and a decimal price,
+  never a timestamp**: a trendline that remembered when it was drawn would date the window, and
+  dating the window identifies the instrument as surely as naming it (BR-01, NFR-05).
+- `src/features/drawing/fib.ts` — the PRD's exact retracement levels (0, .236, .382, .500
+  Equilibrium, .618 Golden Pocket, .786, 1.0) plus trend-based extensions, computed in decimal.
+  This is the one drawing that produces numbers the trader *acts on* — a golden-pocket entry and
+  the stop beneath it — so it is decimal work, not pixel work. A test asserts the levels are
+  invariant under the affine blinding map, which is what makes a fib drawn on a blinded feed land
+  in the same structural place it would on the real one.
+- `src/lib/chart-geometry.ts` — screen-space hit-testing, beside `chart-math.ts` and for the same
+  reason: distance-to-a-line is a question about a screen, not about a market. The boundary is
+  enforced by the money lint rule, which now covers `features/drawing/**`.
+- `src/features/drawing/hit-test.ts` — **the renderer and the hit-tester share one `drawingShape`
+  function.** A horizontal drawn across the plot but hit-tested only between its anchors is a line
+  the trader can see and cannot select, and that reads as the app being broken.
+- `src/features/drawing/reducer.ts` — the tools as a pure state machine: no canvas, no pointer, no
+  clock. Ids come in on the action so it stays a pure function of its inputs.
+- Trendline, horizontal, ray, extended, vertical, fib retracement, fib extension, supply/demand
+  zone, polyline, brush and note; selection, drag-to-move, drag-a-handle-to-reshape, delete,
+  Escape to abandon a half-drawn shape, and magnet-to-OHLC snapping.
+- Brush strokes are thinned (Ramer–Douglas–Peucker) before they become anchors. A short flick is
+  hundreds of pointer events, and every one kept is an anchor to store, hit-test and redraw.
+
+**A correctness gap closed rather than shipped:** higher timeframes are their own index space —
+bar 214 on 15m and bar 214 on 1h are different moments. A drawing therefore carries the timeframe
+it was made on and is hidden on the others. Hiding is honest; a line silently relocated to a bar
+the trader never pointed at is not. Converting between spaces would need the roll-up factor and
+would still land mid-bucket.
+
+**The magnet is deliberately weak** (14px). A strong magnet always snaps, which on a quiet feed
+drags an anchor the length of the pane to reach a bar that never traded near the click — the line
+lands somewhere the trader did not point at. Inside the threshold the anchor's price is *copied*
+from the bar as an exact decimal string rather than computed, so no float reaches a stored anchor.
+
+**A real bug found here, dating from 03D:** `withAlpha` returned every colour unchanged, so every
+tinted fill in the chart — volume bars, RSI bands, the crosshair, and now supply zones — rendered
+fully opaque. The cause is that `getComputedStyle` does not return the text you wrote: a token
+authored as `oklch(0.82 0.14 215)` comes back from Chromium as `lab(79.9992% -35.4387 -29.575)`,
+and the function matched on `oklch(`. It now works by *shape* — CSS Color 4 lets any functional
+notation carry `/ <alpha>` — with tests over the formats a browser actually produces.
+
+**Not in this slice:** drawings live in component state. Persistence is Sprint 05 (FR-TA-11), and
+building the storage round trip before the tools had settled would have been designing a schema
+for a shape that was still moving.
 
 ### Slice 03E — delivered
 
