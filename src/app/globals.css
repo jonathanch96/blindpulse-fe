@@ -238,6 +238,24 @@
   }
 }
 
+/* Clearance for the fixed mobile workspace nav.
+ *
+ * Base definitions live outside the @supports block so the layout is still correct in a browser
+ * without env() — previously both utilities existed only inside it, which meant the nav had no
+ * declared height at all without safe-area support.
+ *
+ * .mobile-page-bottom was written for exactly this and applied to nothing, so any full-bleed screen
+ * ran underneath the nav. The replay terminal did: its transport controls sat behind the bar and
+ * could not be tapped, which is how tap-to-step (NFR-04) was unreachable on a phone. */
+.mobile-safe-bottom {
+  height: 68px;
+}
+
+.mobile-page-bottom {
+  /* The nav's 68px plus a thumb's worth of separation. */
+  padding-bottom: 76px;
+}
+
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .mobile-safe-bottom {
     height: calc(68px + env(safe-area-inset-bottom));
@@ -245,7 +263,14 @@
   }
 
   .mobile-page-bottom {
-    padding-bottom: calc(88px + env(safe-area-inset-bottom));
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+}
+
+/* The nav is lg:hidden, so above that breakpoint the clearance is dead space. */
+@media (min-width: 1024px) {
+  .mobile-page-bottom {
+    padding-bottom: 0;
   }
 }
 

@@ -1,11 +1,11 @@
 import { execFileSync } from "node:child_process"
 import path from "node:path"
 
-const testEmails = "'playwright-account@example.invalid','playwright-reset@example.invalid','playwright-session@example.invalid'"
+import { testEmailsSql } from "./test-users"
 
 // Accounts cascade to their ledgers, sessions, orders and trades, so deleting the test users is
 // enough to leave the database exactly as the run found it.
-const cleanup = `DELETE FROM blindpulse.users WHERE email IN (${testEmails});`
+const cleanup = `DELETE FROM blindpulse.users WHERE email IN (${testEmailsSql});`
 
 export default function globalTeardown() {
   const cwd = path.resolve(import.meta.dirname, "../../blindpulse-be")

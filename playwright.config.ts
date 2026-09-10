@@ -1,13 +1,13 @@
 import path from "node:path"
 import { defineConfig, devices } from "@playwright/test"
 
+import { testEmailsSql } from "./e2e/test-users"
+
 const frontendURL = "http://localhost:3100"
 const backendURL = "http://localhost:18081"
 const backendDirectory = path.resolve(import.meta.dirname, "../blindpulse-be")
 const managedServers = process.env.PLAYWRIGHT_EXTERNAL_SERVERS !== "true"
 
-const testEmails =
-  "'playwright-account@example.invalid','playwright-reset@example.invalid','playwright-session@example.invalid'"
 
 // One command so the whole stack comes up in the order the API needs it: database, migrations, a
 // clean slate for the test users, then the service itself on a port that cannot collide with a
@@ -15,7 +15,7 @@ const testEmails =
 const backendCommand = [
   "POSTGRES_HOST_PORT=55432 REDIS_HOST_PORT=56379 docker compose up -d --wait postgres redis",
   "PATH=/usr/local/go/bin:$PATH make migrate-up",
-  `docker compose exec -T postgres psql -U blindpulse -d blindpulse -c "DELETE FROM blindpulse.users WHERE email IN (${testEmails});"`,
+  `docker compose exec -T postgres psql -U blindpulse -d blindpulse -c "DELETE FROM blindpulse.users WHERE email IN (${testEmailsSql});"`,
   "APP_PORT=18081 REDIS_ADDR=localhost:56379 KAFKA_BROKERS= PATH=/usr/local/go/bin:$PATH go run ./adapters/rest",
 ].join(" && ")
 
@@ -31,7 +31,15 @@ export default defineConfig({
     {
       name: "mobile-chromium",
       testMatch: /mobile-.*\.spec\.ts/,
-      use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 } },
+      // The iPhone 13 preset carries browserName "webkit", which quietly made this project need a
+      // browser its own name says it does not use. Chromium is pinned after the spread so the
+      // project runs what it claims to: the preset is here for the viewport, touch support and
+      // device-pixel ratio, not the engine.
+      use: {
+        ...devices["iPhone 13"],
+        browserName: "chromium",
+        viewport: { width: 390, height: 844 },
+      },
     },
   ],
   webServer: managedServers

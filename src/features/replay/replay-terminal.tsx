@@ -15,7 +15,7 @@ const speeds = ["0.5x", "1x", "3x", "5x", "10x"] as const
 // a trading tool is indistinguishable from a real one until somebody acts on it.
 export function ReplayTerminal() {
   return (
-    <div className="flex h-[calc(100vh-3rem)] flex-col">
+    <div className="mobile-page-bottom flex h-[calc(100vh-3rem)] flex-col">
       <div className="flex flex-wrap items-center gap-2 border-b border-seam bg-panel px-3 py-2">
         <span className="flex items-center gap-2 border border-seam bg-panel-raised px-2 py-1">
           <Lock className="size-3.5 text-primary" aria-hidden="true" />
