@@ -14,6 +14,13 @@ export async function fetchLiveSessions(): Promise<ReplaySession[]> {
   return envelope.data ?? []
 }
 
+// Sessions that have ended, newest first. The terminal asks what is live; the journal asks the
+// opposite question, and a closed session nobody can list again is a post-mortem nobody can write.
+export async function fetchFinishedSessions(limit = 25): Promise<ReplaySession[]> {
+  const envelope = await apiFetch<ReplaySession[]>(`/api/sessions?scope=history&limit=${limit}`)
+  return envelope.data ?? []
+}
+
 export async function fetchSession(id: string): Promise<ReplaySession | null> {
   const envelope = await apiFetch<ReplaySession>(`/api/sessions/${encodeURIComponent(id)}`)
   return envelope.data

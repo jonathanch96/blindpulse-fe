@@ -42,6 +42,10 @@ export type DrawingAction =
   | { type: "setText"; id: string; text: string }
   | { type: "remove"; id: string }
   | { type: "clearAll" }
+  // Replaces the whole list with what the server holds, on load. It is deliberately a replace
+  // rather than a merge: a session's stored drawings are the truth about that session, and merging
+  // would mean a half-drawn line from before a reload surviving as a line the trader never made.
+  | { type: "hydrate"; drawings: Drawing[] }
 
 /** The drawings that belong on a given timeframe. Anchors from another one would point at the
  * wrong bars, so they are hidden rather than relocated. */
@@ -58,6 +62,11 @@ export function drawingReducer(state: DrawingState, action: DrawingAction): Draw
 
     case "toggleMagnet":
       return { ...state, magnet: !state.magnet }
+
+    case "hydrate":
+      // Tool and magnet are the trader's current settings and survive; the draft does not, because
+      // a half-drawn shape belongs to an interaction that is over.
+      return { ...state, drawings: action.drawings, draft: [], draftKind: null, selectedId: null }
 
     case "place": {
       if (state.tool === "cursor") return state

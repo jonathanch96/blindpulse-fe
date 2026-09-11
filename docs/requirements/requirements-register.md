@@ -85,7 +85,7 @@ the browser enforces is a rule a `curl` command ignores.
 | FR-TA-08 | Dual EMAs (20/50/200) and volume profile | FE | 03D | PARTIAL — EMA 20/50/200 and the volume pane done; the by-price volume *profile* is not built |
 | FR-TA-09 | MACD momentum histogram | FE | 06 | PLANNED |
 | FR-TA-10 | Scale modes: `LOG`, `AUTO`, `%` | FE | 03D | **DONE** |
-| FR-TA-11 | Drawings persist per session and reload with it | BOTH | 05 | PLANNED |
+| FR-TA-11 | Drawings persist per session and reload with it | BOTH | 05 | **DONE** — the canvas stays authoritative and a diff mirrors it to the server; verified live through create, reload, reshape and clear-all |
 
 ### 2.5 Execution and risk — `FR-EXEC` (PRD §3.3)
 
@@ -122,15 +122,15 @@ the browser enforces is a rule a `curl` command ignores.
 
 | ID | Requirement | Owner | Sprint | Status |
 |---|---|---|---|---|
-| FR-JOURNAL-01 | Per-trade journal entries anchored to the bar being viewed | BOTH | 05 | PLANNED |
-| FR-JOURNAL-02 | Emotion, conviction and free tags on an entry | BOTH | 05 | PLANNED |
-| FR-JOURNAL-03 | Candle-by-candle trade log with entry/exit, duration, PnL and R | FE | 05 | PLANNED |
-| FR-JOURNAL-04 | Session post-mortem free text with prompt chips | FE | 05 | PLANNED |
-| FR-JOURNAL-05 | Execution footprint chart marking fills with their R-multiples | FE | 05 | PLANNED |
+| FR-JOURNAL-01 | Per-trade journal entries anchored to the bar being viewed | BOTH | 05 | **DONE** — captured inline beside the chart, anchored to the session's cursor as the server reports it |
+| FR-JOURNAL-02 | Emotion, conviction and free tags on an entry | BOTH | 05 | **DONE** — emotion and conviction in the terminal panel; tags are accepted by the API and have no input yet |
+| FR-JOURNAL-03 | Candle-by-candle trade log with entry/exit, duration, PnL and R | FE | 05 | PLANNED — an empty state naming Sprint 04 stands in; there are no fills to log until execution exists |
+| FR-JOURNAL-04 | Session post-mortem free text with prompt chips | FE | 05 | PLANNED — journal capture covers the writing; the post-mortem's own prompts are not built |
+| FR-JOURNAL-05 | Execution footprint chart marking fills with their R-multiples | FE | 05 | PLANNED — needs fills, so it waits on Sprint 04 |
 | FR-JOURNAL-06 | Journal media upload with EXIF stripped and signed URLs | BOTH | 05 | PLANNED |
-| FR-REVEAL-01 | Reveal the real ticker, timeframe and date window (BR-08) | BOTH | 05 | PLANNED |
-| FR-REVEAL-02 | Macro driver annotation explaining the period | BOTH | 05 | PLANNED |
-| FR-REVEAL-03 | Benchmark alpha vs buy-and-hold over the same window | BE | 05 | PLANNED |
+| FR-REVEAL-01 | Reveal the real ticker, timeframe and date window (BR-08) | BOTH | 05 | **DONE** — gated and disabled with the reason stated until the session closes, confirmed as irreversible, and it transitions in place |
+| FR-REVEAL-02 | Macro driver annotation explaining the period | BOTH | 05 | **DONE** — label, narrative and tags; feeds built before migration `000013` carry only the label |
+| FR-REVEAL-03 | Benchmark alpha vs buy-and-hold over the same window | BE | 05 | **DONE** — rendered with the comparison's definition beside it, and with the untraded case named rather than left reading as a loss |
 | FR-REVEAL-04 | Behavioral Discipline Index 0–100 with its components | BE | 06 | PLANNED |
 | FR-REVEAL-05 | Behaviour tagging: FOMO entry, revenge trade, early cut, moved stop | BE | 06 | PLANNED |
 
@@ -155,13 +155,13 @@ the browser enforces is a rule a `curl` command ignores.
 | FR-UI-01 | Dark theme `Terminal Precision` as implemented tokens | FE | 01 | DONE |
 | FR-UI-02 | Light theme `Institutional Precision Replay` as implemented tokens | FE | 01 | DONE |
 | FR-UI-03 | Replay Terminal, desktop, both themes | FE | 03 | PLANNED |
-| FR-UI-04 | Trade Journal & Reveal, desktop, both themes | FE | 05 | PLANNED |
+| FR-UI-04 | Trade Journal & Reveal, desktop, both themes | FE | 05 | **DONE** — tokens only; no literal colours in the reveal components |
 | FR-UI-05 | Accounts & Resets, desktop, both themes | FE | 01 | DONE |
 | FR-UI-06 | Performance Analytics, desktop, both themes | FE | 06 | PLANNED |
 | FR-UI-07 | Login & SSO screen | FE | 01 / 07 | 01 DONE |
 | FR-UI-08 | Mobile Replay Terminal (390px) | FE | 03 | PLANNED |
 | FR-UI-09 | Mobile Trade & Execution slip | FE | 04 | PLANNED |
-| FR-UI-10 | Mobile Journal & Reveal | FE | 05 | PLANNED |
+| FR-UI-10 | Mobile Journal & Reveal | FE | 05 | **DONE** — verified at 390px with no horizontal scroll; the terminal's journal panel is desktop-only and the mobile slip is Sprint 04's |
 | FR-UI-11 | Mobile Accounts & Resets with branch switcher | FE | 06 | PLANNED |
 | FR-UI-12 | Touch gestures: pinch-zoom, drag crosshair, tap-to-step | FE | 03 | PARTIAL — drag-crosshair and tap-to-step work and are tested at 390px; pinch-zoom is not built |
 
@@ -188,8 +188,8 @@ the browser enforces is a rule a `curl` command ignores.
 | 01 | Identity, accounts and reset trees | FR-AUTH-01..04, FR-ACCT-01..05, FR-UI-01/02/05/07, BR-06/07/11, NFR-07 | DONE — the account settings screen closed the last gap (FR-AUTH-04) |
 | 02 | Market data and blinded feeds | FR-FEED-01..07, BR-01, NFR-05 | DONE — the archive and three ingest defects move to Sprint 08 |
 | 03 | Replay session engine and terminal | FR-REPLAY-01..08, FR-TA-01..05/07/08/10, FR-UI-03/08/12, BR-02/10, NFR-01/02/04 | DONE — 03A–03F all delivered; NFR-01's p99-under-load histogram is the one item still owed |
-| 04 | Execution and the risk gate | FR-EXEC-01..12, FR-TA-06, FR-UI-09, BR-03/04/05/09, **NFR-03** | PLANNED — all five plan decisions settled and written into the plan; no open dependencies |
-| 05 | Journal, drawings and the mystery reveal | FR-JOURNAL-01..06, FR-REVEAL-01..03, FR-TA-11, FR-UI-04/10, BR-08 | PLANNED |
+| 04 | Execution and the risk gate | FR-EXEC-01..12, FR-TA-06, FR-UI-09, BR-03/04/05/09, **NFR-03** | PLANNED — **decided, not built.** All five plan decisions settled and no open dependencies; no order intake, gate, fill engine or dock exists yet. See the plan's *What is missing* |
+| 05 | Journal, drawings and the mystery reveal | FR-JOURNAL-01..06, FR-REVEAL-01..03, FR-TA-11, FR-UI-04/10, BR-08 | **DONE except media (FR-JOURNAL-06) and the trade-log panels that need Sprint 04's fills** |
 | 06 | Analytics, discipline index and cross-iteration | FR-ANALYTICS-01..09, FR-REVEAL-04/05, FR-ACCT-06..09, FR-TA-09, FR-UI-06/11 | PLANNED |
 | 07 | Institutional access and hardening | FR-AUTH-05..08 | PLANNED |
 | 08 | Market data archive and ingestion pipeline | FR-FEED-01/02, BR-01, NFR-05 | PLANNED — backend only; see the backend repo's sprint-08 doc |

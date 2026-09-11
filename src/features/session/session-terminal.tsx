@@ -1,7 +1,7 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Lock, Square } from "lucide-react"
+import { Lock, NotebookPen, Square } from "lucide-react"
 import { useCallback, useEffect, useReducer, useState } from "react"
 import { toast } from "sonner"
 
@@ -19,8 +19,11 @@ import { TransportBar } from "@/features/session/components/transport-bar"
 import { PriceChart } from "@/features/chart/price-chart"
 import { DrawingToolbar } from "@/features/drawing/drawing-toolbar"
 import { drawingReducer, initialDrawingState, visibleOn } from "@/features/drawing/reducer"
+import { useDrawingPersistence } from "@/features/drawing/use-drawing-persistence"
+import { JournalPanel } from "@/features/journal/components/journal-panel"
 import { ScaleModeToggle } from "@/features/chart/scale-mode-toggle"
 import type { ScaleMode } from "@/features/chart/types"
+import type { Drawing } from "@/features/drawing/types"
 import type { StreamStatus } from "@/features/session/stream"
 import { useReplayStream } from "@/features/session/use-replay-stream"
 import type { ReplaySession, SessionBar } from "@/features/session/types"
@@ -36,10 +39,8 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
   const queryClient = useQueryClient()
   const [scaleMode, setScaleMode] = useState<ScaleMode>("auto")
   const [readout, setReadout] = useState<SessionBar | null>(null)
-  // Drawings live in component state for now. Persistence is Sprint 05 (FR-TA-11), and building
-  // the storage round trip before the tools are settled would be designing a schema for a shape
-  // that is still moving.
   const [drawing, dispatch] = useReducer(drawingReducer, initialDrawingState)
+  const [journalOpen, setJournalOpen] = useState(true)
 
   const { data: session, isPending } = useQuery({
     queryKey: qk.session(sessionId),
@@ -71,6 +72,18 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
 
   const onError = (error: unknown) => toast.error(apiErrorMessage(error, "The replay engine refused that"))
 
+  // FR-TA-11. The canvas stays authoritative for what is on screen and this mirrors it to the
+  // server; a refused write leaves the trader's lines where they drew them and says so, because a
+  // line vanishing mid-analysis is worse than one that failed to save.
+  const hydrateDrawings = useCallback((drawings: Drawing[]) => dispatch({ type: "hydrate", drawings }), [])
+  useDrawingPersistence({
+    sessionId,
+    drawings: drawing.drawings,
+    enabled: Boolean(session),
+    onHydrate: hydrateDrawings,
+    onError: (error) => toast.error(apiErrorMessage(error, "That drawing could not be saved")),
+  })
+
   const step = useMutation({ mutationFn: (count: number) => stepSession(sessionId, count), onSuccess: refresh, onError })
   const speed = useMutation({ mutationFn: (value: string) => setSessionSpeed(sessionId, value), onSuccess: refresh, onError })
   const timeframe = useMutation({ mutationFn: (value: string) => setSessionTimeframe(sessionId, value), onSuccess: refresh, onError })
@@ -83,7 +96,7 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
     mutationFn: () => closeSession(sessionId),
     onSuccess: (next) => {
       refresh(next)
-      toast.success("Session closed. The reveal unlocks in Sprint 05.")
+      toast.success("Session closed. The reveal is unlocked in the Trade Journal.")
     },
     onError,
   })
@@ -162,6 +175,16 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
         <Button
           variant="outline"
           size="sm"
+          className="hidden h-7 gap-1.5 rounded-sm md:inline-flex"
+          onClick={() => setJournalOpen((open) => !open)}
+          aria-pressed={journalOpen}
+        >
+          <NotebookPen className="size-3" aria-hidden="true" />
+          <span className="label-caps">Journal</span>
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
           className="h-7 gap-1.5 rounded-sm"
           onClick={() => close.mutate()}
           disabled={closed || close.isPending}
@@ -217,6 +240,13 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
               }}
             />
           </div>
+          {/* Beside the chart, not on another screen: a thesis written after leaving the chart is a
+              thesis written after the fact. Collapsible because at 390px the chart is the point. */}
+          {journalOpen ? (
+            <div className="hidden w-72 shrink-0 md:flex md:flex-col">
+              <JournalPanel sessionId={sessionId} barIndex={session.cursorIndex} />
+            </div>
+          ) : null}
         </div>
       </section>
 

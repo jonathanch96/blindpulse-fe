@@ -1,6 +1,6 @@
 # Sprint 05 — Trade Journal and the mystery reveal (frontend)
 
-**Status:** PLANNED · **Estimate:** 8–10 dev-days
+**Status:** **DONE except what needs Sprint 04's fills, and media** · **Estimate:** 8–10 dev-days
 **Requirements:** FR-JOURNAL-01..06, FR-REVEAL-01..03, FR-TA-11, FR-UI-04, FR-UI-10
 **PRD:** §3.4
 **Consumes:** backend Sprint 05 · **Blocks:** Sprint 06
@@ -9,6 +9,20 @@
 
 Build the payoff screen. The reveal is the moment the product justifies the blinding, and it is
 one-way — so the interaction around it matters as much as its layout.
+
+## What this sprint can and cannot show
+
+Sprint 04 is decided and **not built**, so no session has any fills in it. This sprint is built
+anyway — journals, drawings and the reveal all anchor to bars and the feed, none of which need
+execution — but two panels have nothing to render and must say so rather than render a zero:
+
+- **05.4's KPI strip and trade log** have no trades. An empty state that names the reason beats a
+  grid of zeros, which reads as a session where everything went wrong.
+- **05.2's benchmark alpha** is the negative of buy-and-hold, because a strategy that never traded
+  returned nothing. The layout already shows `benchmark_label`; it has to be legible enough that
+  this reads as "you did not trade" rather than "you lost".
+
+Neither is a stub. The same components fill in the day execution lands.
 
 ## Tasks
 
@@ -79,6 +93,28 @@ Card-based reveal, macro context tape, scrollable fills — same content, restac
   response that wrongly contains one — defence in depth behind the backend's contract test.
 - Playwright: trade → close → reveal, asserting the ticker is absent before and present after.
 
+## What is built, and what is waiting
+
+| Task | State |
+|---|---|
+| 05.1 Journal capture | **Done** — inline beside the chart, anchored to the server's cursor. Tags are accepted by the API and have no input yet |
+| 05.2 Session summary header | **Done** — blinded before, ticker/timeframe/window/macro/alpha after |
+| 05.3 The reveal interaction | **Done** — disabled with the reason before close, irreversibility stated in the confirm, transitions in place |
+| 05.4 KPI strip and trade log | **Waiting on Sprint 04** — an empty state that names the reason, not a grid of zeros |
+| 05.5 Execution footprint | **Waiting on Sprint 04** — needs fills to mark |
+| 05.6 Psychology panel | **Done as a pending state** — the projector is Sprint 06, and a 0/100 score for an unmeasured trader is a worse lie than "not computed yet" |
+| 05.7 Macro context | **Done** |
+| 05.8 Post-mortem prompts | **Not built** — journal capture covers the writing; the prompt chips do not exist |
+| 05.9 Drawing persistence | **Done**. Media is not built — the backend has no upload |
+| 05.10 Mobile | **Done** — 390px verified, no horizontal scroll |
+
 ## Definition of done
 A trader can journal through a session, close it, reveal it, and read a post-mortem that reconciles
 with what they actually did.
+
+**Met for everything that does not need a fill.** Verified live in a browser: the journal panel
+writes at the session's own cursor, the reveal is disabled with its reason while the session is
+live and enabled once closed, the confirmation says it cannot be undone, the ticker appears in place
+on the same screen, the benchmark's definition is stated beside the number, and the untraded case is
+named rather than left reading as a loss. Drawings survive a reload, a reshape PATCHes, and a
+clear-all deletes and stays deleted.

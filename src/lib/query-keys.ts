@@ -8,6 +8,9 @@ export const qk = {
   accountTree: (accountId: string) => [...qk.account(accountId), "tree"] as const,
   accountLedger: (accountId: string) => [...qk.account(accountId), "ledger"] as const,
   sessions: () => [...qk.all, "sessions"] as const,
+  // Finished sessions are keyed apart from live ones: they answer different questions and a
+  // shared key would make closing a session silently empty the terminal's list.
+  finishedSessions: () => [...qk.sessions(), "history"] as const,
   session: (sessionId: string) => [...qk.sessions(), sessionId] as const,
   // Bars are keyed by the cursor as well as the session: a replay frame is only valid for the
   // bar index it was fetched at, so a stale window must never be served from cache after a step.
@@ -23,6 +26,12 @@ export const qk = {
   sessionMetrics: (sessionId: string) => [...qk.session(sessionId), "metrics"] as const,
   sessionReveal: (sessionId: string) => [...qk.session(sessionId), "reveal"] as const,
   journal: (sessionId: string) => [...qk.session(sessionId), "journal"] as const,
+  journalRevisions: (sessionId: string, entryId: string) =>
+    [...qk.journal(sessionId), entryId, "revisions"] as const,
+  // The disclosed series is keyed apart from the blinded window on purpose: they are different
+  // data about the same session, and one cache entry for both is how a blinded screen ends up
+  // rendering unblinded bars.
+  sessionDisclosure: (sessionId: string) => [...qk.session(sessionId), "disclosure"] as const,
   feeds: () => [...qk.all, "feeds"] as const,
   analytics: (scope: string) => [...qk.all, "analytics", scope] as const,
 }
