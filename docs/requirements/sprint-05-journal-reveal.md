@@ -1,6 +1,6 @@
 # Sprint 05 — Trade Journal and the mystery reveal (frontend)
 
-**Status:** **DONE except what needs Sprint 04's fills, and media** · **Estimate:** 8–10 dev-days
+**Status:** **DONE except what needs Sprint 04's fills** · **Estimate:** 8–10 dev-days
 **Requirements:** FR-JOURNAL-01..06, FR-REVEAL-01..03, FR-TA-11, FR-UI-04, FR-UI-10
 **PRD:** §3.4
 **Consumes:** backend Sprint 05 · **Blocks:** Sprint 06
@@ -105,7 +105,7 @@ Card-based reveal, macro context tape, scrollable fills — same content, restac
 | 05.6 Psychology panel | **Done as a pending state** — the projector is Sprint 06, and a 0/100 score for an unmeasured trader is a worse lie than "not computed yet" |
 | 05.7 Macro context | **Done** |
 | 05.8 Post-mortem prompts | **Not built** — journal capture covers the writing; the prompt chips do not exist |
-| 05.9 Drawing persistence | **Done**. Media is not built — the backend has no upload |
+| 05.9 Drawing persistence and media | **Done** — drawings mirror to the server as a diff; screenshots upload from the journal panel and render through short-lived signed links |
 | 05.10 Mobile | **Done** — 390px verified, no horizontal scroll |
 
 ## Definition of done
@@ -117,4 +117,6 @@ writes at the session's own cursor, the reveal is disabled with its reason while
 live and enabled once closed, the confirmation says it cannot be undone, the ticker appears in place
 on the same screen, the benchmark's definition is stated beside the number, and the untraded case is
 named rather than left reading as a loss. Drawings survive a reload, a reshape PATCHes, and a
-clear-all deletes and stays deleted.
+clear-all deletes and stays deleted. A screenshot carrying an EXIF capture date uploads, comes back
+through a signed link, renders in the panel and on the post-mortem, and a shell script renamed
+`.png` is refused with the server's own reason rather than a generic failure.

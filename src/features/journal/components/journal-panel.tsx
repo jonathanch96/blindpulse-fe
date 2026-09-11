@@ -1,13 +1,13 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { NotebookPen } from "lucide-react"
-import { useState } from "react"
+import { ImagePlus, NotebookPen } from "lucide-react"
+import { useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { fetchJournal, writeJournalEntry } from "@/features/journal/api"
+import { acceptedMediaTypes, attachJournalMedia, fetchJournal, writeJournalEntry } from "@/features/journal/api"
 import { emotionLabels, emotions, type Emotion } from "@/features/journal/types"
 import { apiErrorMessage } from "@/lib/envelope"
 import { qk } from "@/lib/query-keys"
@@ -28,6 +28,21 @@ export function JournalPanel({ sessionId, barIndex }: { sessionId: string; barIn
   const [conviction, setConviction] = useState<number | null>(null)
 
   const { data: entries } = useQuery({ queryKey: qk.journal(sessionId), queryFn: () => fetchJournal(sessionId) })
+
+  // One picker for the whole list: the entry being illustrated is whichever the trader clicked, so
+  // a hidden input per row would be one DOM node per note for no benefit.
+  const picker = useRef<HTMLInputElement>(null)
+  const [target, setTarget] = useState<string | null>(null)
+
+  const attach = useMutation({
+    mutationFn: ({ entryId, file }: { entryId: string; file: File }) =>
+      attachJournalMedia(sessionId, entryId, file),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: qk.journal(sessionId) })
+      toast.success("Screenshot attached, stripped of its metadata")
+    },
+    onError: (error) => toast.error(apiErrorMessage(error, "That image was refused")),
+  })
 
   const write = useMutation({
     mutationFn: () =>
@@ -52,6 +67,22 @@ export function JournalPanel({ sessionId, barIndex }: { sessionId: string; barIn
 
   return (
     <section className="flex min-h-0 flex-col border-l border-seam bg-panel" aria-label="Journal">
+      {/* Hidden, driven by the per-entry buttons below. The accept attribute matches what the
+          server will take — the server checks the bytes rather than trusting this, but offering a
+          file it is going to refuse wastes the trader's time. */}
+      <input
+        ref={picker}
+        type="file"
+        accept={acceptedMediaTypes}
+        aria-label="Attach a screenshot"
+        className="sr-only"
+        onChange={(event) => {
+          const file = event.target.files?.[0]
+          if (file && target) attach.mutate({ entryId: target, file })
+          // Reset, so picking the same file twice in a row still fires a change event.
+          event.target.value = ""
+        }}
+      />
       <div className="flex items-center gap-2 border-b border-seam px-3 py-1.5">
         <NotebookPen className="size-3.5 text-muted-foreground" aria-hidden="true" />
         <p className="label-caps text-muted-foreground">Journal</p>
@@ -138,6 +169,29 @@ export function JournalPanel({ sessionId, barIndex }: { sessionId: string; barIn
                 </div>
                 {entry.thesis ? <p className="text-[13px] leading-snug">{entry.thesis}</p> : null}
                 {entry.note ? <p className="text-[13px] leading-snug text-muted-foreground">{entry.note}</p> : null}
+                {entry.mediaUrl ? (
+                  /* A plain <img>: the src is a short-lived signed link the server mints per
+                     response, and next/image would proxy and cache it past its expiry — turning a
+                     link that is supposed to go stale into one that does not. */
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={entry.mediaUrl}
+                    alt={`Screenshot attached at bar ${entry.barIndex + 1}`}
+                    className="w-full border border-seam"
+                  />
+                ) : null}
+                <button
+                  type="button"
+                  className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-50"
+                  disabled={attach.isPending}
+                  onClick={() => {
+                    setTarget(entry.id)
+                    picker.current?.click()
+                  }}
+                >
+                  <ImagePlus className="size-3" aria-hidden="true" />
+                  {entry.mediaUrl ? "Replace screenshot" : "Attach screenshot"}
+                </button>
               </li>
             ))}
           </ul>

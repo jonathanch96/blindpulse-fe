@@ -127,7 +127,7 @@ the browser enforces is a rule a `curl` command ignores.
 | FR-JOURNAL-03 | Candle-by-candle trade log with entry/exit, duration, PnL and R | FE | 05 | PLANNED — an empty state naming Sprint 04 stands in; there are no fills to log until execution exists |
 | FR-JOURNAL-04 | Session post-mortem free text with prompt chips | FE | 05 | PLANNED — journal capture covers the writing; the post-mortem's own prompts are not built |
 | FR-JOURNAL-05 | Execution footprint chart marking fills with their R-multiples | FE | 05 | PLANNED — needs fills, so it waits on Sprint 04 |
-| FR-JOURNAL-06 | Journal media upload with EXIF stripped and signed URLs | BOTH | 05 | PLANNED |
+| FR-JOURNAL-06 | Journal media upload with EXIF stripped and signed URLs | BOTH | 05 | **DONE** — decoded and re-encoded from the pixels rather than segment-stripped, HMAC-signed links expiring in minutes, local store behind an interface (S3 deliberately unwritten, untestable here) |
 | FR-REVEAL-01 | Reveal the real ticker, timeframe and date window (BR-08) | BOTH | 05 | **DONE** — gated and disabled with the reason stated until the session closes, confirmed as irreversible, and it transitions in place |
 | FR-REVEAL-02 | Macro driver annotation explaining the period | BOTH | 05 | **DONE** — label, narrative and tags; feeds built before migration `000013` carry only the label |
 | FR-REVEAL-03 | Benchmark alpha vs buy-and-hold over the same window | BE | 05 | **DONE** — rendered with the comparison's definition beside it, and with the untraded case named rather than left reading as a loss |
@@ -189,7 +189,7 @@ the browser enforces is a rule a `curl` command ignores.
 | 02 | Market data and blinded feeds | FR-FEED-01..07, BR-01, NFR-05 | DONE — the archive and three ingest defects move to Sprint 08 |
 | 03 | Replay session engine and terminal | FR-REPLAY-01..08, FR-TA-01..05/07/08/10, FR-UI-03/08/12, BR-02/10, NFR-01/02/04 | DONE — 03A–03F all delivered; NFR-01's p99-under-load histogram is the one item still owed |
 | 04 | Execution and the risk gate | FR-EXEC-01..12, FR-TA-06, FR-UI-09, BR-03/04/05/09, **NFR-03** | PLANNED — **decided, not built.** All five plan decisions settled and no open dependencies; no order intake, gate, fill engine or dock exists yet. See the plan's *What is missing* |
-| 05 | Journal, drawings and the mystery reveal | FR-JOURNAL-01..06, FR-REVEAL-01..03, FR-TA-11, FR-UI-04/10, BR-08 | **DONE except media (FR-JOURNAL-06) and the trade-log panels that need Sprint 04's fills** |
+| 05 | Journal, drawings and the mystery reveal | FR-JOURNAL-01..06, FR-REVEAL-01..03, FR-TA-11, FR-UI-04/10, BR-08 | **DONE** — the trade-log panels (FR-JOURNAL-03/05) carry empty states until Sprint 04's fills exist |
 | 06 | Analytics, discipline index and cross-iteration | FR-ANALYTICS-01..09, FR-REVEAL-04/05, FR-ACCT-06..09, FR-TA-09, FR-UI-06/11 | PLANNED |
 | 07 | Institutional access and hardening | FR-AUTH-05..08 | PLANNED |
 | 08 | Market data archive and ingestion pipeline | FR-FEED-01/02, BR-01, NFR-05 | PLANNED — backend only; see the backend repo's sprint-08 doc |

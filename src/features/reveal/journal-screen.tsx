@@ -122,6 +122,16 @@ export function JournalScreen({ sessionId }: { sessionId: string }) {
                   </div>
                   {entry.thesis ? <p className="text-sm leading-snug">{entry.thesis}</p> : null}
                   {entry.note ? <p className="text-sm leading-snug text-muted-foreground">{entry.note}</p> : null}
+                  {entry.mediaUrl ? (
+                    /* Signed and short-lived, so it is a plain <img> rather than next/image — see
+                       the journal panel for why caching it would outlive its authority. */
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={entry.mediaUrl}
+                      alt={`Screenshot attached at bar ${entry.barIndex + 1}`}
+                      className="max-w-md border border-seam"
+                    />
+                  ) : null}
                   {entry.tags.length > 0 ? (
                     <div className="flex flex-wrap gap-1">
                       {entry.tags.map((tag) => (
