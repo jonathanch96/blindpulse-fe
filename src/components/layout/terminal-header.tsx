@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 
 import { BlindModeChip } from "@/components/layout/blind-mode-chip"
 import { BrandMark, BrandWordmark } from "@/components/layout/brand-mark"
-import { workspaces } from "@/components/layout/nav-items"
+import { accountSettings, workspaces } from "@/components/layout/nav-items"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { cn } from "@/lib/utils"
 
@@ -45,6 +45,19 @@ export function TerminalHeader() {
 
         <div className="ml-auto flex items-center gap-2">
           <BlindModeChip blinded className="hidden md:inline-flex" />
+          {/* The only route to the account at mobile widths, so it is an icon in the bar rather than
+              a sixth item in the bottom nav. Labelled, because a bare gear is a guess. */}
+          <Link
+            href={accountSettings.href}
+            aria-label={accountSettings.label}
+            aria-current={pathname.startsWith(accountSettings.href) ? "page" : undefined}
+            className={cn(
+              "p-1.5 transition-colors",
+              pathname.startsWith(accountSettings.href) ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <accountSettings.icon className="size-4" aria-hidden="true" />
+          </Link>
           <ThemeToggle />
         </div>
       </div>

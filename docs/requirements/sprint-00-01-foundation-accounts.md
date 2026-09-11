@@ -64,6 +64,21 @@ and `parseFloat` inside `src/features/**` and flags arithmetic on money-shaped i
 - The integrity badge calls `/ledger/verify` and shows what the recomputation returned. It does not
   read a stored flag — a badge that always says VERIFIED because a column says so is decoration.
 
+### 00.6 Account settings (FR-AUTH-04) — added after review finding `BE-01-3`
+Delivered late: this sprint shipped the profile and password *routes* and no screen that called
+them, so FR-AUTH-04 sat PARTIAL for the whole project and there was nowhere in the product to change
+a password. It was never listed as a task here, which is why nobody noticed it was missing.
+
+- `/settings`: display name, avatar URL, and a password card, over the BFF routes that already
+  existed. Reached from a labelled icon in the header at every width and from the rail's footer on
+  desktop — not from the workspace tabs, which are trading surfaces.
+- The password card follows the account. `has_password` on the user payload says whether there is a
+  password to change; an account created through Google is **setting its first one**, so the current
+  password field is absent rather than unanswerable. The server draws the same distinction.
+- A blank avatar URL means "remove it" and stores NULL, which is the only way that is expressible.
+- The server's refusal lands on the field it is about: `INVALID_CURRENT_PASSWORD` marks the current
+  password, not the top of the card.
+
 ## Acceptance criteria — all met
 
 | # | Criterion | Verified by |
@@ -74,6 +89,8 @@ and `parseFloat` inside `src/features/**` and flags arithmetic on money-shaped i
 | 01-AC-4 | Register → open portfolio → reset renders both iterations with the older one intact | Playwright `account-reset-tree.spec.ts` + live browser run |
 | 01-AC-5 | Both themes render every semantic state without a hardcoded hue | Token review; no literal colors in feature components |
 | 01-AC-6 | `pnpm verify` green: lint, typecheck, 47 tests, build, bundle guard | CI |
+| 01-AC-7 | A signed-in trader can change their password inside the product | Live browser: wrong current password marks that field with the server's reason, the change then succeeds and the old password stops working |
+| 01-AC-8 | An account with no password is offered one instead of being asked for a current password | `password-form.test.tsx`, verified non-vacuous by ignoring `has_password` |
 
 ## Known gaps carried forward
 - The Replay Terminal renders its docking layout in a resting state and names the sprint that

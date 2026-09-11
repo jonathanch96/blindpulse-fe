@@ -20,9 +20,16 @@ export const registerSchema = z.object({
   password: passwordSchema,
 })
 
+// The BFF's shape for PATCH /users/me/password, mirroring the server's own request type.
+//
+// currentPassword is optional here on purpose: an account created through Google has no password
+// yet, and that call sets its first one rather than changing one. The server skips verification
+// exactly when no hash exists and verifies it whenever one does, so requiring it at this boundary
+// would block the first-time case without protecting the other. The settings form requires it when
+// the account has a password — see `changePasswordFormSchema`.
 export const changePasswordSchema = z
   .object({
-    currentPassword: z.string().min(1, "Current password is required").max(128),
+    currentPassword: z.string().max(128).optional(),
     newPassword: passwordSchema,
     confirmPassword: z.string().min(1, "Confirm your new password").max(128),
   })

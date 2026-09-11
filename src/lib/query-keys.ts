@@ -1,5 +1,8 @@
 export const qk = {
   all: ["blindpulse"] as const,
+  // The signed-in user's own profile. Mutated by the settings screen, and invalidated after setting
+  // a first password because has_password is what decides which form that card shows.
+  currentUser: () => [...qk.all, "user", "me"] as const,
   accounts: () => [...qk.all, "accounts"] as const,
   account: (accountId: string) => [...qk.accounts(), accountId] as const,
   accountTree: (accountId: string) => [...qk.account(accountId), "tree"] as const,
