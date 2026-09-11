@@ -23,7 +23,7 @@ the browser enforces is a rule a `curl` command ignores.
 | BR-02 | The replay cursor is server-authoritative, forward-only, and a client cannot obtain a bar past it | §3.1 | BE | 03A, revised 04 | DONE — one index since the cursor cannot move backward |
 | BR-03 | No entry order is accepted without a hard stop loss | §3.3 | BE | 04 | PLANNED |
 | BR-04 | An order below the account's minimum R:R is rejected, never silently resized | §3.3 | BE | 04 | PLANNED |
-| BR-05 | Breaching the account's max daily drawdown halts trading for the session | §3.3 | BE | 04 | PLANNED |
+| BR-05 | Breaching the account's max daily drawdown halts trading for the session | §3.3 | BE | 04 | PLANNED — "daily" is a market day computed server-side; the UI shows room remaining, never a countdown (`SP4-1`) |
 | BR-06 | A reset never overwrites or deletes history; it seals the iteration and forks a child | §3.5 | BE | 01 | DONE |
 | BR-07 | Sealed iterations are read-only and provable via a hash chain | §3.5, §6.3 | BE | 01 | DONE |
 | BR-08 | A session may be revealed exactly once, and only after it is closed | §3.4 | BE | 05 | PLANNED |
@@ -92,7 +92,7 @@ the browser enforces is a rule a `curl` command ignores.
 | ID | Requirement | Owner | Sprint | Status |
 |---|---|---|---|---|
 | FR-EXEC-01 | Market, limit and stop orders | BE | 04 | PLANNED |
-| FR-EXEC-02 | Sizing by lots or by % equity risk | BOTH | 04 | PLANNED |
+| FR-EXEC-02 | Sizing by lots or by % equity risk | BOTH | 04 | PLANNED — quantity is in base-asset units and sizing is against equity, not balance (`SP4-3`) |
 | FR-EXEC-03 | Pre-entry gate: hard stop present (BR-03) | BE | 04 | PLANNED |
 | FR-EXEC-04 | Pre-entry gate: minimum R:R (BR-04) | BE | 04 | PLANNED |
 | FR-EXEC-05 | Pre-entry gate: max daily drawdown (BR-05) | BE | 04 | PLANNED |
@@ -188,7 +188,7 @@ the browser enforces is a rule a `curl` command ignores.
 | 01 | Identity, accounts and reset trees | FR-AUTH-01..04, FR-ACCT-01..05, FR-UI-01/02/05/07, BR-06/07/11, NFR-07 | DONE except the account settings screen (FR-AUTH-04) |
 | 02 | Market data and blinded feeds | FR-FEED-01..07, BR-01, NFR-05 | DONE — the archive and three ingest defects move to Sprint 08 |
 | 03 | Replay session engine and terminal | FR-REPLAY-01..08, FR-TA-01..05/07/08/10, FR-UI-03/08/12, BR-02/10, NFR-01/02/04 | DONE — 03A–03F all delivered; NFR-01's p99-under-load histogram is the one item still owed |
-| 04 | Execution and the risk gate | FR-EXEC-01..12, FR-TA-06, FR-UI-09, BR-03/04/05/09, **NFR-03** | PLANNED — five decisions to settle first, see the plan review |
+| 04 | Execution and the risk gate | FR-EXEC-01..12, FR-TA-06, FR-UI-09, BR-03/04/05/09, **NFR-03** | PLANNED — all five plan decisions settled and written into the plan; no open dependencies |
 | 05 | Journal, drawings and the mystery reveal | FR-JOURNAL-01..06, FR-REVEAL-01..03, FR-TA-11, FR-UI-04/10, BR-08 | PLANNED |
 | 06 | Analytics, discipline index and cross-iteration | FR-ANALYTICS-01..09, FR-REVEAL-04/05, FR-ACCT-06..09, FR-TA-09, FR-UI-06/11 | PLANNED |
 | 07 | Institutional access and hardening | FR-AUTH-05..08 | PLANNED |
