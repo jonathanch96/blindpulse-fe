@@ -13,7 +13,6 @@ const wireFrame = {
   timeframe: "15m",
   speed: "3",
   cursor_index: 214,
-  revealed_index: 214,
   bars_scanned: 215,
   total_bars: 701,
   latency_ms: 7,
@@ -30,7 +29,6 @@ describe("decodeFrame", () => {
       timeframe: "15m",
       speed: "3",
       cursorIndex: 214,
-      revealedIndex: 214,
       barsScanned: 215,
       totalBars: 701,
       latencyMs: 7,
@@ -61,7 +59,7 @@ describe("decodeFrame", () => {
 
   it("defaults absent numbers to zero instead of NaN", () => {
     const raw = JSON.stringify({ kind: "heartbeat" })
-    expect(decodeFrame(raw)).toMatchObject({ kind: "heartbeat", latencyMs: 0, revealedIndex: 0 })
+    expect(decodeFrame(raw)).toMatchObject({ kind: "heartbeat", latencyMs: 0, cursorIndex: 0 })
   })
 })
 
@@ -82,8 +80,9 @@ describe("mergeBar", () => {
     expect(mergeBar([], bar(0))).toEqual([bar(0)])
   })
 
-  // A frame that arrives after a rewind or a refetch is stale. The authoritative window is what
-  // the last fetch returned, so an older index must not rewrite it.
+  // A frame that arrives after a refetch is stale — a reconnect replays a sync frame, and the
+  // bus can deliver out of order. The authoritative window is what the last fetch returned, so an
+  // older index must not rewrite it.
   it("ignores a frame older than the series it has", () => {
     const bars = [bar(5), bar(6)]
     expect(mergeBar(bars, bar(4))).toEqual(bars)
@@ -114,7 +113,7 @@ describe("hasGap", () => {
 describe("applyFrame", () => {
   const session: ReplaySession = {
     id: "s1", accountId: "a1", feedId: "f1", status: "open", timeframe: "15m", speed: "1",
-    cursorIndex: 200, revealedIndex: 200, barsScanned: 201, totalBars: 701,
+    cursorIndex: 200, barsScanned: 201, totalBars: 701,
     startedAt: "", closedAt: null,
   }
 
@@ -123,7 +122,7 @@ describe("applyFrame", () => {
   it("takes the server's cursor, edge and status", () => {
     const frame = decodeFrame(JSON.stringify({ ...wireFrame, status: "paused", speed: "5" }))!
     expect(applyFrame(session, frame)).toMatchObject({
-      status: "paused", speed: "5", cursorIndex: 214, revealedIndex: 214, barsScanned: 215,
+      status: "paused", speed: "5", cursorIndex: 214, barsScanned: 215,
     })
   })
 

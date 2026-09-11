@@ -5,7 +5,7 @@ import { toolSpecs, type Anchor, type Drawing, type DrawingKind, type DrawingToo
 // The drawing tools as a pure state machine.
 //
 // Everything the trader can do to a drawing is an action here, and nothing in this file touches a
-// canvas, a pointer or the clock. That is what makes "a rewind must not move a drawing" and "a
+// canvas, a pointer or the clock. That is what makes "a new bar must not move a drawing" and "a
 // half-drawn fib must not commit" testable claims rather than things you check by hand.
 
 export type DrawingState = {

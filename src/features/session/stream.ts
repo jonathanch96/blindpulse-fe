@@ -18,7 +18,6 @@ export type ReplayFrame = {
   timeframe: string
   speed: string
   cursorIndex: number
-  revealedIndex: number
   barsScanned: number
   totalBars: number
   latencyMs: number
@@ -75,7 +74,6 @@ export function decodeFrame(raw: string): ReplayFrame | null {
     timeframe: readString(parsed, "timeframe"),
     speed: readString(parsed, "speed"),
     cursorIndex: readNumber(parsed, "cursor_index"),
-    revealedIndex: readNumber(parsed, "revealed_index"),
     barsScanned: readNumber(parsed, "bars_scanned"),
     totalBars: readNumber(parsed, "total_bars"),
     latencyMs: readNumber(parsed, "latency_ms"),
@@ -93,7 +91,7 @@ export function mergeBar(bars: SessionBar[], bar: SessionBar): SessionBar[] {
   const last = bars[bars.length - 1]
   if (bar.index === last.index) return [...bars.slice(0, -1), bar]
   if (bar.index > last.index) return [...bars, bar]
-  // An older index means the series was rewound or refetched under us. Leave it alone: the
+  // An older index means the series was refetched under us. Leave it alone: the
   // authoritative window is whatever the last fetch returned, not a frame that arrived late.
   return bars
 }
@@ -119,7 +117,6 @@ export function applyFrame(session: ReplaySession, frame: ReplayFrame): ReplaySe
     timeframe: frame.timeframe || session.timeframe,
     speed: frame.speed || session.speed,
     cursorIndex: frame.cursorIndex,
-    revealedIndex: frame.revealedIndex,
     barsScanned: frame.barsScanned,
     totalBars: frame.totalBars || session.totalBars,
   }

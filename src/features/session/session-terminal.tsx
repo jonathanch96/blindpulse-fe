@@ -127,7 +127,6 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
     )
   }
 
-  const rewound = session.cursorIndex < session.revealedIndex
 
   return (
     <div className="mobile-page-bottom flex h-[calc(100vh-3rem)] flex-col">
@@ -155,13 +154,6 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
           ))}
         </div>
 
-        {/* Rewinding is review, not time travel: the trader can look back, but the engine still
-            knows how far they have actually been shown. Saying so keeps the state legible. */}
-        {rewound ? (
-          <span className="label-caps border border-telemetry/40 bg-telemetry-muted px-2 py-1 text-telemetry">
-            Reviewing T-{session.revealedIndex - session.cursorIndex} · live edge held
-          </span>
-        ) : null}
 
         <span className="metric ml-auto flex items-center gap-2 text-xs text-muted-foreground">
           {closed ? null : <StreamIndicator status={stream.status} latencyMs={stream.latencyMs} />}

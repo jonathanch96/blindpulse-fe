@@ -1,12 +1,13 @@
 // The replay session contract.
 //
-// Two indices, and the difference between them matters:
-//   - cursorIndex is where the trader is looking.
-//   - revealedIndex is the furthest bar the server has released.
+// One index, and it only moves forward. `cursorIndex` is both where the trader is and the furthest
+// bar the server has released, because those cannot differ: there is no going back. Once a bar is
+// stepped past it is history, the way it is on a live chart, and a trader who wants a different
+// setup randomizes a new feed rather than rewinding this one.
 //
-// Rewinding moves the first and never the second. The client must never assume it may read past
-// revealedIndex — and if it tries, the server refuses rather than clamping, so a bug here surfaces
-// as an error instead of as silently-correct-looking data.
+// The client must never assume it may read past `cursorIndex` — and if it tries, the server refuses
+// rather than clamping, so a bug here surfaces as an error instead of as silently-correct-looking
+// data.
 
 export type SessionStatus = "open" | "paused" | "closed" | "abandoned"
 
@@ -18,7 +19,6 @@ export type ReplaySession = {
   timeframe: string
   speed: string
   cursorIndex: number
-  revealedIndex: number
   barsScanned: number
   totalBars: number
   startedAt: string

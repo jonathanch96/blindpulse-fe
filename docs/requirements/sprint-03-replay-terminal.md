@@ -8,7 +8,7 @@ Shared numbering with `blindpulse-be`. This document covers the frontend slices.
 
 | Slice | Scope | Status |
 |---|---|---|
-| 03C | Session wiring — start from a feed, transport, progress, timeframe, rewind banner | **DONE** |
+| 03C | Session wiring — start from a feed, transport, progress, timeframe | **DONE** (the rewind banner was removed with the rewind itself — see `SP4-2`) |
 | 03D | Chart canvas at 60 FPS with EMAs, RSI and scale modes | **DONE** |
 | 03E | Websocket streaming, reconnect and backpressure | **DONE** |
 | 03F | Drawing tools — fibonacci, trendlines, zones | **DONE** |
@@ -173,7 +173,9 @@ rendering decision is made first and measured immediately.
 - Latency readout from the frame envelope (FR-REPLAY-08).
 
 ### 03.3 Transport controls (FR-REPLAY-02..04)
-- Step back / play-pause / step forward; `Space` steps (FR-EXEC-12 partial).
+- Play-pause / step forward; `Space` steps (FR-EXEC-12 partial). **No step-back control** — Sprint
+  04's `SP4-2` decision made the cursor forward-only, and the button and the "Reviewing T-N · live
+  edge held" banner were removed with it.
 - Speed segmented control 0.5x / 1x / 3x / 5x / 10x, active state in telemetry cyan per the design
   system.
 - Progress: `142 / 500 bars scanned` with a scrub rail. Scrubbing forward past the cursor is

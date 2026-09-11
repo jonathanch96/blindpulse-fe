@@ -1,6 +1,6 @@
 "use client"
 
-import { Pause, Play, SkipBack, SkipForward } from "lucide-react"
+import { Pause, Play, SkipForward } from "lucide-react"
 
 import { playbackSpeeds, type ReplaySession } from "@/features/session/types"
 import { cn } from "@/lib/utils"
@@ -15,21 +15,21 @@ export function TransportBar({
   busy,
 }: {
   session: ReplaySession
+  /** Advances the cursor. Forward only — the server refuses a negative count. */
   onStep: (count: number) => void
   onSpeed: (speed: string) => void
   onTogglePlay: () => void
   busy: boolean
 }) {
-  const atEnd = session.revealedIndex >= session.totalBars - 1
-  const atStart = session.cursorIndex <= 0
+  const atEnd = session.cursorIndex >= session.totalBars - 1
   const closed = session.status === "closed" || session.status === "abandoned"
 
   return (
     <div className="flex flex-wrap items-center justify-center gap-3 border-t border-seam bg-panel px-3 py-2">
       <div className="flex items-center gap-px border border-seam" role="group" aria-label="Transport">
-        <TransportButton label="Step back" onClick={() => onStep(-1)} disabled={busy || closed || atStart}>
-          <SkipBack className="size-4" />
-        </TransportButton>
+        {/* There is no step-back control, and that is the product rather than an omission: the
+            cursor only moves forward. Once a bar is stepped past it is history, the way it is on a
+            live chart, and a trader who wants a different setup randomizes a new feed. */}
         <TransportButton
           label={session.status === "paused" ? "Resume" : "Pause"}
           onClick={onTogglePlay}
@@ -70,8 +70,8 @@ export function TransportBar({
             style={{ width: `${Math.min(100, (session.barsScanned / Math.max(1, session.totalBars)) * 100)}%` }}
           />
         </div>
-        {/* The PRD's "142 / 500 bars scanned" readout. It reports the revealed edge, which is what
-            the trader has actually consumed — not the view cursor, which rewinding moves. */}
+        {/* The PRD's "142 / 500 bars scanned" readout. The server sends this counted from one, so
+            the off-by-one against the cursor index lives in one place rather than here. */}
         <span className="metric text-xs text-muted-foreground">
           {session.barsScanned}/{session.totalBars}
         </span>

@@ -47,7 +47,6 @@ async function command(id: string, action: string, body?: unknown): Promise<Repl
 }
 
 export const stepSession = (id: string, count: number) => command(id, "step", { count })
-export const seekSession = (id: string, barIndex: number) => command(id, "seek", { barIndex })
 export const setSessionSpeed = (id: string, speed: string) => command(id, "speed", { speed })
 export const setSessionTimeframe = (id: string, timeframe: string) => command(id, "timeframe", { timeframe })
 export const pauseSession = (id: string) => command(id, "pause")
