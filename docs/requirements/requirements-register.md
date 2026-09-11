@@ -68,7 +68,7 @@ the browser enforces is a rule a `curl` command ignores.
 | FR-REPLAY-04 | Progress indicator (`142 / 500 bars scanned`) | FE | 03C | DONE |
 | FR-REPLAY-05 | Websocket streams frames at playback speed, resumable from the cursor | BOTH | 03E | **DONE** — server-driven clock, Redis pub/sub fan-out, single-use ticket auth, latest-wins backpressure |
 | FR-REPLAY-06 | Multi-timeframe toggle (1m / 5m / 15m / 1h / 4h / 1D) over the same cursor | BOTH | 03B/03C | DONE |
-| FR-REPLAY-07 | Pause, seek, close; idle sessions time out | BOTH | 03A/03C | DONE except the idle sweeper |
+| FR-REPLAY-07 | Pause, close; idle sessions time out | BOTH | 03A/03C | DONE — `seek` dropped per SP4-2, BFF route included; the idle sweeper runs in the backend's `cmd/worker` |
 | FR-REPLAY-08 | Simulated feed latency surfaced in the UI | BOTH | 03E | **DONE** — `latency_ms` per frame, measured per connection, shown beside the connection state |
 
 ### 2.4 Technical analysis ribbon — `FR-TA` (PRD §3.2)
