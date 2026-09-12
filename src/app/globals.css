@@ -22,6 +22,9 @@
   --color-telemetry: var(--telemetry);
   --color-telemetry-foreground: var(--telemetry-foreground);
   --color-telemetry-muted: var(--telemetry-muted);
+  --color-caution: var(--caution);
+  --color-caution-foreground: var(--caution-foreground);
+  --color-caution-muted: var(--caution-muted);
 
   /* Workspace tiles. The terminal is a docking grid, not a page of cards: panel is the tile
      surface, panel-raised the control tier, and seam the 1px structural divider between them. */
@@ -115,6 +118,13 @@
   --telemetry: oklch(0.58 0.15 240); /* #0284C7 */
   --telemetry-foreground: oklch(1 0 0);
   --telemetry-muted: oklch(0.95 0.03 240);
+  /* Caution is the third state the risk gate needs and neither bullish nor bearish can express:
+     an allowance that is running out is not a loss yet, and painting it crimson would make the
+     difference between "careful" and "stopped" invisible at the moment it matters most. Amber, well
+     clear of the emerald/crimson pair on hue so it is not read as either. */
+  --caution: oklch(0.7 0.16 72); /* #C2740A */
+  --caution-foreground: oklch(0.17 0.017 260);
+  --caution-muted: oklch(0.96 0.04 72);
 
   --panel: oklch(0.97 0.003 250); /* #F8FAFC structural tier */
   --panel-raised: oklch(0.96 0.006 250); /* #F1F5F9 interactive/recessed tier */
@@ -165,6 +175,9 @@
   --bullish-muted: oklch(0.26 0.05 165);
   --bearish: oklch(0.68 0.21 15); /* #FF4D6D */
   --bearish-foreground: oklch(0.17 0.017 260);
+  --caution: oklch(0.82 0.16 78); /* #FFB224 */
+  --caution-foreground: oklch(0.17 0.017 260);
+  --caution-muted: oklch(0.28 0.06 78);
   --bearish-muted: oklch(0.27 0.06 15);
   --telemetry: oklch(0.82 0.14 215); /* #00D2FF playback/telemetry cyan */
   --telemetry-foreground: oklch(0.17 0.017 260);

@@ -1,7 +1,7 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Lock, NotebookPen, Square } from "lucide-react"
+import { CandlestickChart, Lock, NotebookPen, Square } from "lucide-react"
 import { useCallback, useEffect, useReducer, useState } from "react"
 import { toast } from "sonner"
 
@@ -18,6 +18,7 @@ import {
 import { TransportBar } from "@/features/session/components/transport-bar"
 import { PriceChart } from "@/features/chart/price-chart"
 import { DrawingToolbar } from "@/features/drawing/drawing-toolbar"
+import { ExecutionDock } from "@/features/execution/components/execution-dock"
 import { drawingReducer, initialDrawingState, visibleOn } from "@/features/drawing/reducer"
 import { useDrawingPersistence } from "@/features/drawing/use-drawing-persistence"
 import { JournalPanel } from "@/features/journal/components/journal-panel"
@@ -28,6 +29,14 @@ import type { StreamStatus } from "@/features/session/stream"
 import { useReplayStream } from "@/features/session/use-replay-stream"
 import type { ReplaySession, SessionBar } from "@/features/session/types"
 import { Button } from "@/components/ui/button"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer"
 import { Skeleton } from "@/components/ui/skeleton"
 import { apiErrorMessage } from "@/lib/envelope"
 import { qk } from "@/lib/query-keys"
@@ -41,6 +50,7 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
   const [readout, setReadout] = useState<SessionBar | null>(null)
   const [drawing, dispatch] = useReducer(drawingReducer, initialDrawingState)
   const [journalOpen, setJournalOpen] = useState(true)
+  const [dockOpen, setDockOpen] = useState(true)
 
   const { data: session, isPending } = useQuery({
     queryKey: qk.session(sessionId),
@@ -57,6 +67,13 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
     queryFn: () => fetchSessionView(sessionId, session?.timeframe),
     enabled: Boolean(session),
   })
+
+  // The last close the trader has actually been shown, which is the only price the order ticket may
+  // reason from. Taken from the revealed window rather than from any other source: a ticket priced
+  // from a bar the trader cannot see would be pricing on hindsight, which is the one thing this
+  // product exists to remove. A forming bar is legitimate here — it is on screen — and the fill is
+  // the *next* bar's open regardless, so this is a reference and never a fill price.
+  const lastVisiblePrice = view?.bars.at(-1)?.close ?? null
 
   const closed = session?.status === "closed" || session?.status === "abandoned"
   // Nothing to stream from a session that has ended, and a socket that reconnected forever against
@@ -176,6 +193,16 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
           variant="outline"
           size="sm"
           className="hidden h-7 gap-1.5 rounded-sm md:inline-flex"
+          onClick={() => setDockOpen((open) => !open)}
+          aria-pressed={dockOpen}
+        >
+          <CandlestickChart className="size-3" aria-hidden="true" />
+          <span className="label-caps">Execution</span>
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="hidden h-7 gap-1.5 rounded-sm md:inline-flex"
           onClick={() => setJournalOpen((open) => !open)}
           aria-pressed={journalOpen}
         >
@@ -240,6 +267,19 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
               }}
             />
           </div>
+          {/* The execution dock sits between the chart and the journal, which is the order of the
+              decision: read the chart, act, then write down why. Collapsible for the same reason the
+              journal is — at 390px the chart is the point, and the dock moves under it. */}
+          {dockOpen ? (
+            <div className="hidden w-72 shrink-0 border-l border-seam md:flex md:flex-col">
+              <ExecutionDock
+                sessionId={sessionId}
+                lastPrice={lastVisiblePrice}
+                closed={closed}
+                cursorIndex={session.cursorIndex}
+              />
+            </div>
+          ) : null}
           {/* Beside the chart, not on another screen: a thesis written after leaving the chart is a
               thesis written after the fact. Collapsible because at 390px the chart is the point. */}
           {journalOpen ? (
@@ -249,6 +289,37 @@ export function SessionTerminal({ sessionId }: { sessionId: string }) {
           ) : null}
         </div>
       </section>
+
+      {/* On a phone there is no column to spare, and a terminal you cannot trade from is not a
+          terminal — so the same dock comes up as a sheet over the chart. It is the identical
+          component, not a reduced one: a mobile build that quietly dropped the risk readout or the
+          stop field would be a mobile build that let someone trade without the guard rails (NFR-04). */}
+      <Drawer>
+        <DrawerTrigger
+          render={
+            <Button variant="outline" size="sm" className="mx-3 mb-1 h-8 rounded-sm md:hidden">
+              <CandlestickChart className="size-3.5" aria-hidden="true" />
+              <span className="label-caps">Trade</span>
+            </Button>
+          }
+        />
+        <DrawerContent className="h-[85vh] md:hidden">
+          <DrawerHeader className="pb-1">
+            <DrawerTitle className="label-caps text-left">Execution</DrawerTitle>
+            <DrawerDescription className="text-left text-[11px]">
+              Your account&apos;s own rules are applied by the server, whichever screen you trade from.
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="min-h-0 flex-1 overflow-hidden">
+            <ExecutionDock
+              sessionId={sessionId}
+              lastPrice={lastVisiblePrice}
+              closed={closed}
+              cursorIndex={session.cursorIndex}
+            />
+          </div>
+        </DrawerContent>
+      </Drawer>
 
       <TransportBar
         session={session}

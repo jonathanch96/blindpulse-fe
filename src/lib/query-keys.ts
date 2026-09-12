@@ -23,6 +23,10 @@ export const qk = {
   sessionTrades: (sessionId: string) => [...qk.session(sessionId), "trades"] as const,
   sessionPositions: (sessionId: string) => [...qk.session(sessionId), "positions"] as const,
   sessionDrawings: (sessionId: string) => [...qk.session(sessionId), "drawings"] as const,
+  // The compliance readout. Its own key rather than part of the session's, because it changes on
+  // every bar while the session row changes only on a checkpoint — sharing one key would either
+  // refetch the session needlessly or serve a stale allowance.
+  sessionRisk: (sessionId: string) => [...qk.session(sessionId), "risk"] as const,
   sessionMetrics: (sessionId: string) => [...qk.session(sessionId), "metrics"] as const,
   sessionReveal: (sessionId: string) => [...qk.session(sessionId), "reveal"] as const,
   journal: (sessionId: string) => [...qk.session(sessionId), "journal"] as const,
